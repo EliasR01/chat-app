@@ -40,3 +40,14 @@ export const useButtonStyles = makeStyles({
     color: "#fff",
   },
 });
+
+export const useIconStyles = makeStyles({
+  hover: {
+    "&:hover": {
+      backgroundColor: "#FFF",
+    },
+  },
+  selected: {
+    backgroundColor: "#FFF",
+  },
+});

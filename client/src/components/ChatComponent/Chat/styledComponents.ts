@@ -4,11 +4,38 @@ export const HeaderWrapper = styled.div`
   width: 100%;
   margin: auto;
   display: flex;
-  justify-content: space-around;
-`
+  justify-content: space-between;
+`;
 
 export const ItemsWrapper = styled.div`
   display: flex;
-  justify-content: space-around;
   flex-flow: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: auto;
+`;
+
+export const ChatActions = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin: auto;
+`;
+
+export const InputWrapper = styled.div`
+  width: 50%;
+  margin: auto;
+`;
+
+export const ChatWrapper = styled.div`
+  overflow: auto;
+  ::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+export const Form = styled.form`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  overflow: none;
 `;

@@ -2,11 +2,13 @@ import path from "path";
 import webpack from "webpack";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import SpeedMeasurePlugin from "speed-measure-webpack-plugin";
+// import HtmlWebpackPlugin from "html-webpack-plugin";
 
 const smp = new SpeedMeasurePlugin();
 
 const config: webpack.Configuration = smp.wrap({
   entry: "./src/index.tsx",
+  target: "node",
   module: {
     rules: [
       {
@@ -42,7 +44,27 @@ const config: webpack.Configuration = smp.wrap({
     compress: true,
     port: 8000,
   },
+  // optimization: {
+  //   splitChunks: {
+  //     cacheGroups: {
+  //       commons: {
+  //         test: /[\\/]node_modules[\\/]/,
+  //         name: "vendors",
+  //         chunks: "all",
+  //       },
+  //     },
+  //   },
+  // },
   plugins: [
+    // new HtmlWebpackPlugin({
+    //   title: "",
+    //   template: "./build/index.html",
+    //   minify: {
+    //     collapseWhitespace: true,
+    //   },
+    //   hash: true,
+    //   inject: true,
+    // }),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       eslint: {

@@ -10,28 +10,22 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
 //Init websocket function
-func Init(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-
+func Init(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+	}
+	client := &Client{
+		Conn: conn,
+		Pool: pool,
 	}
 
-	for {
-		messageType, p, err := conn.ReadMessage()
-
-		if err != nil {
-			log.Fatal(err)
-		}
-		log.Println(p)
-		if err := conn.WriteMessage(messageType, p); err != nil {
-			log.Fatal(err)
-		}
-	}
+	pool.Register <- client
+	client.Read()
 
 }

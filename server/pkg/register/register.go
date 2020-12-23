@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	_ "github.com/lib/pq" //This is postgreSQL driver, combined with the database/sql
 	"golang.org/x/crypto/bcrypt"
@@ -15,11 +16,14 @@ type UserData struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	Address  string `json:"address"`
+	Phone    string `json:"phone"`
+	Username string `json:"username"`
 }
 
 //User function to create a new user
 func User(data UserData, db *sql.DB, w http.ResponseWriter) {
-	sqlStatement := `INSERT INTO users VALUES ($1, $2, $3)`
+	sqlStatement := `INSERT INTO users(name, email, password, created_at, address, phone, username) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	sqlQuery := `SELECT * FROM users WHERE name = $1 OR email = $2`
 
 	res, err := db.Query(sqlQuery, data.Name, data.Email)
@@ -42,7 +46,7 @@ func User(data UserData, db *sql.DB, w http.ResponseWriter) {
 		}
 
 		encryptedPassword := string(bytes)
-		response, err := db.Exec(sqlStatement, data.Name, data.Email, encryptedPassword)
+		response, err := db.Exec(sqlStatement, data.Name, data.Email, encryptedPassword, time.Now(), data.Address, data.Phone, data.Username)
 
 		if err != nil {
 			w.WriteHeader(http.StatusConflict)

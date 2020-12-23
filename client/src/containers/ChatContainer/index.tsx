@@ -1,24 +1,16 @@
-import React, { ReactElement, useEffect, useState } from "react";
-import { connect } from "../../websocket";
+import React, { ReactElement } from "react";
 import ChatComponent from "../../components/ChatComponent";
+import { ChatProvider } from "../../context/Chat/ChatContext";
+// import axios from "axios";
 
 const ChatContainer = (): ReactElement => {
-  const [messages, setMessages] = useState<Array<string>>([]);
+  // const cookie = document.cookie.split("=")[1];
 
-  useEffect(() => {
-    const messageHandler = (msg: MessageEvent): void => {
-      console.log("New message!");
-      console.log(msg.data);
-      setMessages([...messages, msg.data]);
-      console.log(messages);
-    };
-    const functions = {
-      messageHandler,
-    };
-    connect(functions);
-  }, [messages]);
-
-  return <ChatComponent />;
+  return (
+    <ChatProvider>
+      <ChatComponent />
+    </ChatProvider>
+  );
 };
 
 export default ChatContainer;

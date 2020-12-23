@@ -13,6 +13,8 @@ const HomeContainer = ({ history }: Props): ReactElement => {
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
 
+  console.log(loginData);
+
   const signIn = () => {
     setError(false);
     if (loginData.email === "" || loginData.password === "") {
@@ -33,10 +35,6 @@ const HomeContainer = ({ history }: Props): ReactElement => {
       }
     }
   };
-
-  if (error) {
-    console.log(error);
-  }
 
   return (
     <HomeComponent

@@ -28,14 +28,17 @@ import {
   useBoxStyles,
   useInputSyles,
   useButtonStyles,
+  useIconStyles,
 } from "./styles";
 import { IconsWrapper, OptionsWrapper } from "./styledComponents";
+import { props } from "./types";
 
-const ChatHistory = (): ReactElement => {
+const ChatHistory = ({ setOption, option }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const boxStyles = useBoxStyles();
   const inputStyles = useInputSyles();
   const buttonStyles = useButtonStyles();
+  const iconStyles = useIconStyles();
 
   return (
     <Container className={containerStyles.root}>
@@ -64,16 +67,36 @@ const ChatHistory = (): ReactElement => {
       </Box>
       <Box className={boxStyles.root}>
         <IconsWrapper>
-          <Button>
+          <Button
+            className={
+              option === "history" ? iconStyles.selected : iconStyles.hover
+            }
+            onClick={() => setOption("history")}
+          >
             <History />
           </Button>
-          <Button>
+          <Button
+            className={
+              option === "people" ? iconStyles.selected : iconStyles.hover
+            }
+            onClick={() => setOption("people")}
+          >
             <People />
           </Button>
-          <Button>
+          <Button
+            className={
+              option === "contacts" ? iconStyles.selected : iconStyles.hover
+            }
+            onClick={() => setOption("contacts")}
+          >
             <Contacts />
           </Button>
-          <Button>
+          <Button
+            className={
+              option === "archived" ? iconStyles.selected : iconStyles.hover
+            }
+            onClick={() => setOption("archived")}
+          >
             <Archive />
           </Button>
         </IconsWrapper>

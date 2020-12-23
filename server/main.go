@@ -10,7 +10,6 @@ import (
 	"github.com/EliasR01/chat-app/go-server/pkg/auth"
 	"github.com/EliasR01/chat-app/go-server/pkg/register"
 	"github.com/EliasR01/chat-app/go-server/pkg/websocket"
-	"github.com/go-redis/redis/v7"
 	_ "github.com/lib/pq"
 )
 
@@ -24,14 +23,12 @@ const (
 
 var db *sql.DB
 var err error
-var client *redis.Client
 
 func main() {
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
 	db, err = sql.Open("postgres", psqlInfo)
-	// initRedis()
 
 	if err != nil {
 		log.Fatalf("Error opening database: %s", err)
@@ -44,31 +41,15 @@ func main() {
 
 	defer db.Close()
 
-	http.HandleFunc("/ws", websocketHandler)
+	pool := websocket.NewPool()
+	go pool.Start(db)
+
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		websocket.Init(pool, w, r)
+	})
 	http.HandleFunc("/auth", authHandler)
 	http.HandleFunc("/register", registerHandler)
-	log.Fatal(http.ListenAndServe(":4000", nil))
-}
-
-// func initRedis() {
-// 	dsn := os.Getenv("REDIS_DSN")
-
-// 	if len(dsn) == 0 {
-// 		dsn = "localhost:6379"
-// 	}
-
-// 	client = redis.NewClient(&redis.Options{
-// 		Addr: dsn,
-// 	})
-// 	_, err := client.Ping().Result()
-
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// }
-
-func websocketHandler(w http.ResponseWriter, r *http.Request) {
-	websocket.Init(w, r)
+	http.ListenAndServe(":4000", nil)
 }
 
 func authHandler(w http.ResponseWriter, r *http.Request) {

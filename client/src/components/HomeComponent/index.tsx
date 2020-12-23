@@ -62,6 +62,7 @@ const HomeComponent = ({
               {loading ? <LinearProgress /> : null}
               <Wrapper>
                 <Input
+                  error={error ? true : false}
                   className={inputStyles.root}
                   placeholder="Email address"
                   onChange={(e) => setData({ ...data, email: e.target.value })}
@@ -69,6 +70,7 @@ const HomeComponent = ({
               </Wrapper>
               <Wrapper>
                 <Input
+                  error={error ? true : false}
                   className={inputStyles.root}
                   placeholder="Password"
                   type="password"

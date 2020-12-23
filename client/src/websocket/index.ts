@@ -1,10 +1,13 @@
-const socket = new WebSocket("ws://localhost:4000/ws");
+import { Message } from "./types";
 
+let socket: WebSocket;
 interface cb {
   messageHandler: (msg: MessageEvent) => void;
 }
 
 export const connect = ({ messageHandler }: cb): void => {
+  socket = new WebSocket("ws://localhost:4000/ws");
+
   socket.onopen = () => {
     console.log("Successfully connected!");
   };
@@ -22,7 +25,7 @@ export const connect = ({ messageHandler }: cb): void => {
   };
 };
 
-export const sendMsg = (msg: string): void => {
-  console.log("Sending msg: ", msg);
-  socket.send(msg);
+export const sendMsg = (msg: Message): void => {
+  const message = JSON.stringify(msg);
+  socket.send(message);
 };

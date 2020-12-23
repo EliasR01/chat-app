@@ -15,9 +15,14 @@ import (
 
 //User Type
 type User struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	CreatedAt string `json:"created_at"`
+	ID        int    `json:"id"`
+	Address   string `json:"address"`
+	Phone     string `json:"phone"`
+	Username  string `json:"username"`
 }
 
 //ValidateUser function
@@ -26,15 +31,13 @@ func ValidateUser(email string, password string, db *sql.DB, w http.ResponseWrit
 	var rows int
 	var userData User
 	res, err := db.Query(sqlStatement, email)
-
 	if err != nil {
 		w.WriteHeader(http.StatusConflict)
 		w.Write([]byte("There was an error querying the user"))
-		log.Printf("Error querying user: %s", err)
 	} else {
 		for res.Next() {
 			rows++
-			res.Scan(&userData.Name, &userData.Email, &userData.Password)
+			res.Scan(&userData.Name, &userData.Email, &userData.Password, &userData.CreatedAt, &userData.ID, &userData.Address, &userData.Phone, &userData.Username)
 			err := bcrypt.CompareHashAndPassword([]byte(userData.Password), []byte(password))
 
 			if err != nil {
@@ -47,6 +50,9 @@ func ValidateUser(email string, password string, db *sql.DB, w http.ResponseWrit
 				u := map[string]interface{}{}
 				u["name"] = userData.Name
 				u["email"] = userData.Email
+				u["address"] = userData.Address
+				u["phone"] = userData.Phone
+				u["username"] = userData.Username
 
 				b, err := json.Marshal(u)
 
@@ -71,7 +77,7 @@ func ValidateUser(email string, password string, db *sql.DB, w http.ResponseWrit
 
 func generateToken(user string) *http.Cookie {
 	var cookie http.Cookie
-	os.Setenv("ACCESS_SECRET", "ajkskhjwkdkgfaskj")
+	os.Setenv("ACCESS_SECRET", "s0m3s4p3rsawdas56456cr3tt0k3n6564s")
 	tokenClaims := jwt.MapClaims{}
 	tokenClaims["authorized"] = true
 	tokenClaims["user_name"] = user
