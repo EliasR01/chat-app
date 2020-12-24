@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/EliasR01/chat-app/go-server/pkg/auth"
+	"github.com/EliasR01/chat-app/go-server/pkg/chat"
 	"github.com/EliasR01/chat-app/go-server/pkg/register"
 	"github.com/EliasR01/chat-app/go-server/pkg/websocket"
 	_ "github.com/lib/pq"
@@ -49,7 +50,22 @@ func main() {
 	})
 	http.HandleFunc("/auth", authHandler)
 	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/user", userHandler)
 	http.ListenAndServe(":4000", nil)
+}
+
+func userHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	var data []string
+
+	for _, v := range r.URL.Query() {
+		data = append(data, v[0])
+	}
+	chat.GetUserInfo(db, w, r, data[0])
 }
 
 func authHandler(w http.ResponseWriter, r *http.Request) {

@@ -32,6 +32,7 @@ func User(data UserData, db *sql.DB, w http.ResponseWriter) {
 		log.Printf("Error querying the user: %s", err)
 	}
 
+	defer res.Close()
 	if res.Next() {
 		w.WriteHeader(http.StatusNonAuthoritativeInfo)
 		w.Write([]byte("User already exists!"))

@@ -35,6 +35,7 @@ func ValidateUser(email string, password string, db *sql.DB, w http.ResponseWrit
 		w.WriteHeader(http.StatusConflict)
 		w.Write([]byte("There was an error querying the user"))
 	} else {
+		defer res.Close()
 		for res.Next() {
 			rows++
 			res.Scan(&userData.Name, &userData.Email, &userData.Password, &userData.CreatedAt, &userData.ID, &userData.Address, &userData.Phone, &userData.Username)
@@ -48,6 +49,7 @@ func ValidateUser(email string, password string, db *sql.DB, w http.ResponseWrit
 				cookie := generateToken(userData.Name)
 
 				u := map[string]interface{}{}
+				u["ID"] = userData.ID
 				u["name"] = userData.Name
 				u["email"] = userData.Email
 				u["address"] = userData.Address

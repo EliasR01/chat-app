@@ -1,11 +1,12 @@
-import { Message, Action } from "./types";
+import { State, Action } from "./types";
 import { sendMsg } from "../../websocket";
 
-export const chatReducer = (state: Message[], action: Action): Message[] => {
+export const chatReducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "SEND": {
       const data = action.payload;
-      sendMsg(data);
+      const message = data.messages[0];
+      sendMsg(message);
       return state;
     }
     case "RECEIVE": {
@@ -17,7 +18,14 @@ export const chatReducer = (state: Message[], action: Action): Message[] => {
       //     }
       //   })
       // }
-      return [...state, data];
+      return {
+        ...state,
+        ...data,
+      };
+    }
+    case "LOGIN": {
+      const data = action.payload;
+      return { ...state, ...data };
     }
     default:
       return state;

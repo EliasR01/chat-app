@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 
 export type User = {
+  ID?: number;
   name?: string;
   email: string;
   password?: string;

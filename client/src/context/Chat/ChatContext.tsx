@@ -1,33 +1,43 @@
 import React, {
   createContext,
-  Dispatch,
   ReactElement,
   useEffect,
   useReducer,
 } from "react";
 import { connect } from "../../websocket";
-import { Message, Children } from "./types";
+import { State, Children, Action } from "./types";
+import { chatMiddleware } from "./chatMiddleware";
 import { chatReducer } from "./chatReducer";
-import { Action } from "./types";
 
-const initialState: Array<Message> = [
-  {
-    body: "Message",
-    type: 0,
-    sender: "Anybody",
-  },
-];
+const initialState: State = {
+  messages: null,
+  attachments: null,
+  conversations: null,
+  contacts: null,
+};
 
 export const ChatContext = createContext<{
-  state: Message[];
-  dispatch: Dispatch<Action>;
+  state: State;
+  dispatch: (
+    action: string,
+    payload: number | State,
+    dispatch: React.Dispatch<Action>
+  ) => Promise<boolean>;
 }>({
   state: initialState,
-  dispatch: () => null,
+  dispatch: async () => false,
 });
 
 export const ChatProvider = ({ children }: Children): ReactElement => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+
+  const useMiddleware = (
+    action: string,
+    data: number | State
+  ): Promise<boolean> => {
+    return chatMiddleware(action, data, dispatch);
+  };
+
   useEffect(() => {
     const messageHandler = (msg: MessageEvent): void => {
       const data = JSON.parse(msg.data);
@@ -42,16 +52,8 @@ export const ChatProvider = ({ children }: Children): ReactElement => {
     connect(functions);
   }, []);
 
-  //   const sendMessage = (msg: string): void => {
-  //     const message: Message = {
-  //       body: msg,
-  //       sender: state.name,
-  //     };
-  //     sendMsg(message);
-  //   };
-
   return (
-    <ChatContext.Provider value={{ state, dispatch }}>
+    <ChatContext.Provider value={{ state, dispatch: useMiddleware }}>
       {children}
     </ChatContext.Provider>
   );
