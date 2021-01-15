@@ -10,6 +10,7 @@ import (
 type Client struct {
 	Conn *websocket.Conn
 	Pool *Pool
+	User string
 }
 
 //Message type

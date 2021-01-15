@@ -1,0 +1,37 @@
+import { History } from "history";
+
+export type props = {
+  history: History;
+};
+
+export type Conversation = {
+  id: string;
+  creator: string;
+  member: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string;
+  sts: string;
+};
+
+export type Message = {
+  type: number;
+  body: string;
+  sender?: string;
+  receiver?: string;
+  conversationId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  userId?: number;
+  sts: string;
+};
+
+export type Contact = {
+  id: string;
+  name: string;
+  email: string;
+  userId: string;
+  username: string;
+  address: string;
+  phone: string;
+};

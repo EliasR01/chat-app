@@ -13,7 +13,7 @@ const App = (): ReactElement => {
         <Router>
           <Switch>
             <Route exact path="/" component={HomeContainer} />
-            <Route exact path="/chat" component={ChatContainer} />
+            <Route path="/chat" component={ChatContainer} />
           </Switch>
         </Router>
       </ThemeProvider>

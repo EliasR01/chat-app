@@ -19,9 +19,9 @@ export const useContainerStyles = makeStyles({
 export const useBoxStyles = makeStyles<Theme, boxProps>({
   root: {
     width: "100%",
+    minHeight: "50px",
     height: ({ type }) =>
-      type === "h" ? "20%" : type === "c" ? "10%" : "100%",
-    // display: ({ type }) => (type === "b" ? "block" : "flex"),
+      type === "h" ? "50px" : type === "c" ? "50px" : "100%",
     display: "flex",
     backgroundColor: ({ type }) => (type === "c" ? "#E6E6E6" : "#FAFAFA"),
     boxShadow: ({ type }) =>
@@ -53,6 +53,7 @@ export const useListItemStyles = makeStyles({
     display: "flex",
     // alignSelf: "flex-end",
     marginBottom: "2%",
+    fontSize: "1em",
   },
 });
 

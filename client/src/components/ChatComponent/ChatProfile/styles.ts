@@ -1,11 +1,13 @@
-import { makeStyles } from "@material-ui/core";
+import { makeStyles, Theme } from "@material-ui/core";
+import { boxProps } from "./types";
 
-export const useBoxStyles = makeStyles({
+export const useBoxStyles = makeStyles<Theme, boxProps>({
   root: {
     height: "100%",
-    width: "30%",
+    width: ({ hidden }) => (hidden ? "5%" : "30%"),
     display: "flex",
     flexFlow: "column",
+    transition: "all 0.2s ease-out",
   },
 });
 

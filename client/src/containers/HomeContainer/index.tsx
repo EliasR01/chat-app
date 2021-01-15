@@ -1,19 +1,30 @@
-import React, { ReactElement, useContext, useState } from "react";
+import React, { ReactElement, useContext, useState, useEffect } from "react";
 import HomeComponent from "../../components/HomeComponent";
 import { UserContext } from "../../context/User/UserContext";
-import { LoginData, Props } from "./types";
+import { loginData, props } from "./types";
 
-const HomeContainer = ({ history }: Props): ReactElement => {
+const HomeContainer = ({ history }: props): ReactElement => {
   const [openModal, setOpenModal] = useState<boolean>(false);
-  const [loginData, setLoginData] = useState<LoginData>({
+  const [loginData, setLoginData] = useState<loginData>({
+    name: "",
     email: "",
     password: "",
   });
   const [error, setError] = useState<string | boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
+  const cookie = document.cookie;
 
-  console.log(loginData);
+  useEffect(() => {
+    if (cookie) {
+      dispatch("RELOAD", { name: "", email: "" }).then((response) => {
+        if (response) {
+          history.push("/chat");
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signIn = () => {
     setError(false);

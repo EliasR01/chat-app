@@ -18,7 +18,6 @@ const UserContext = createContext<{
 
 const UserProvider = ({ children }: Children): ReactElement => {
   const [state, dispatch] = useReducer(userReducer, initialState);
-
   const useMiddleware = (
     action: string,
     data: User

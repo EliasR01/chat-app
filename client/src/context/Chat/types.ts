@@ -1,8 +1,12 @@
 export type Message = {
   type: number;
   body: string;
-  sender: string;
-  receiver: string;
+  sender?: string;
+  receiver?: string;
+  conversationId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  userId?: number;
   sts: string;
 };
 
@@ -14,7 +18,8 @@ export type Attachment = {
 
 export type Conversation = {
   id: string;
-  creatorID: string;
+  creator: string;
+  member: string;
   createdAt: string;
   updatedAt: string;
   deletedAt: string;
@@ -26,13 +31,18 @@ export type Contact = {
   name: string;
   email: string;
   userId: string;
+  username: string;
+  address: string;
+  phone: string;
 };
 
 export type State = {
+  username?: string;
   messages: Message[];
-  attachments: Attachment[];
-  conversations: Conversation[];
-  contacts: Contact[];
+  attachments?: Attachment[];
+  conversations?: Conversation[];
+  contacts?: Contact[];
+  people?: User[];
 };
 
 export type Action = {
@@ -43,4 +53,14 @@ export type Action = {
 
 export type Children = {
   children: React.ReactNode;
+};
+
+export type User = {
+  id?: number;
+  name: string;
+  email: string;
+  password?: string;
+  address?: string;
+  phone?: string;
+  username?: string;
 };

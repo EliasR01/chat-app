@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/EliasR01/chat-app/go-server/pkg/auth"
 	"github.com/EliasR01/chat-app/go-server/pkg/chat"
@@ -26,7 +27,7 @@ var db *sql.DB
 var err error
 
 func main() {
-
+	mux := http.NewServeMux()
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 
 	db, err = sql.Open("postgres", psqlInfo)
@@ -39,19 +40,36 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error stablishing connection to the database: %s", err)
 	}
+	os.Setenv("ACCESS_SECRET", "s0m3s4p3rsawdas56456cr3tt0k3n6564s")
 
 	defer db.Close()
 
 	pool := websocket.NewPool()
 	go pool.Start(db)
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+
 		websocket.Init(pool, w, r)
 	})
-	http.HandleFunc("/auth", authHandler)
-	http.HandleFunc("/register", registerHandler)
-	http.HandleFunc("/user", userHandler)
-	http.ListenAndServe(":4000", nil)
+
+	mux.HandleFunc("/auth", authHandler)
+	mux.HandleFunc("/register", registerHandler)
+	mux.HandleFunc("/user", userHandler)
+	mux.HandleFunc("/logout", logoutHandler)
+
+	server := http.Server{Addr: ":4000", Handler: mux}
+	log.Println("Server started on port 4000")
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatalf("Error initializing server: %s", err)
+	}
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+
+	auth.Logout(w)
 }
 
 func userHandler(w http.ResponseWriter, r *http.Request) {
@@ -73,12 +91,13 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
 	var data []string
+	log.Println(r.URL)
 	for _, v := range r.URL.Query() {
+		log.Println(v)
 		data = append(data, v[0])
 	}
-	auth.ValidateUser(data[0], data[1], db, w, r)
+	auth.ValidateUser(data, db, w, r)
 
 }
 

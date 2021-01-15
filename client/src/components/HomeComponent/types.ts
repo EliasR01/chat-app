@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 
 type LoginData = {
+  name: string;
   email: string;
   password: string;
 };

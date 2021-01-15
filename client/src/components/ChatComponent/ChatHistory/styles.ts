@@ -17,7 +17,7 @@ export const useBoxStyles = makeStyles({
   root: {
     width: "100%",
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "space-around",
     marginBottom: "24px",
   },
 });
@@ -29,7 +29,7 @@ export const useInputSyles = makeStyles({
     border: "none",
     borderRadius: "5px",
     backgroundColor: "#3D9FFF",
-    "&&&:hover": {
+    "&:hover": {
       backgroundColor: "#5FB0FF",
     },
   },

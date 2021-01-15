@@ -4,7 +4,7 @@ export const ExitWrapper = styled.div`
   width: 100%;
   display: flex;
   margin-top: 20px;
-  justify-content: flex-end;
+  justify-content: space-between;
 `;
 
 export const UserWrapper = styled.div`
@@ -37,4 +37,10 @@ export const Media = styled.div`
   display: grid;
   grid-template-columns: repeat(4, minmax(40px, 60px));
   grid-gap: 1vw;
+`;
+
+export const Wrapper = styled.div`
+  width: 100%;
+  display: ${(props) => (props.hidden ? "hidden" : "block")};
+  transition: all 0.1 ease-out;
 `;

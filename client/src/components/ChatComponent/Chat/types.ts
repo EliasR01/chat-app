@@ -6,10 +6,10 @@ export type boxProps = {
 };
 
 export type props = {
-  name: string | undefined;
+  name: string | null | undefined;
   setMessage: Dispatch<SetStateAction<string>>;
   send: () => void;
   messages: Message[];
   message: string;
-  chatRef: React.MutableRefObject<HTMLDivElement | undefined>;
+  chatRef: React.RefObject<HTMLDivElement>;
 };

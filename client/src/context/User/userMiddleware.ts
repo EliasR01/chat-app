@@ -12,7 +12,7 @@ export const userMiddleware = async (
       let result = false;
       await axios
         .get(
-          `http://localhost:4000/auth?email=${payload.email}&password=${payload.password}`,
+          `http://localhost:4000/auth?type=${action}&email=${payload.email}&password=${payload.password}`,
           { withCredentials: true }
         )
         .then((response) => {
@@ -42,6 +42,45 @@ export const userMiddleware = async (
         })
         .catch((err) => {
           result = err;
+        });
+      return result;
+    }
+    case "RELOAD": {
+      let result = false;
+      await axios
+        .get(`http://localhost:4000/auth?type=${action}`, {
+          withCredentials: true,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch({ payload: response.data, type: "RELOAD" });
+            result = true;
+          }
+        })
+        .catch(() => {
+          result = false;
+        });
+      return result;
+    }
+    case "LOGOUT": {
+      let result = false;
+      await axios.get("http://localhost:4000/logout").then((response) => {
+        if (response.status === 200) {
+          dispatch({ payload: response.data, type: "LOGOUT" });
+          result = true;
+        }
+      });
+      return result;
+    }
+    case "UPDATE": {
+      let result = false;
+      await axios
+        .put("http://localhost:4000/update", payload)
+        .then((response) => {
+          if (response.data === 200) {
+            dispatch({ payload: response.data, type: "UPDATE" });
+            result = true;
+          }
         });
       return result;
     }

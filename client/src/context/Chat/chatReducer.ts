@@ -11,20 +11,19 @@ export const chatReducer = (state: State, action: Action): State => {
     }
     case "RECEIVE": {
       const data = action.payload;
-      // if (state.find(value => value.sender === data.sender)) {
-      //   return state.map(value => {
-      //     value.sender === data.sender ? return {
-      //       body: value.body,
-      //     }
-      //   })
-      // }
+      const message = data.messages;
+      console.log(message);
+      console.log(state);
       return {
         ...state,
-        ...data,
+        messages: [...state.messages, message[0]],
       };
     }
     case "LOGIN": {
       const data = action.payload;
+      if (data.messages === null) {
+        data.messages = [];
+      }
       return { ...state, ...data };
     }
     default:

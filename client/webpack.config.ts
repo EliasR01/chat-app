@@ -2,21 +2,24 @@ import path from "path";
 import webpack from "webpack";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import SpeedMeasurePlugin from "speed-measure-webpack-plugin";
-// import HtmlWebpackPlugin from "html-webpack-plugin";
+import { CleanWebpackPlugin } from "clean-webpack-plugin";
 
 const smp = new SpeedMeasurePlugin();
 
 const config: webpack.Configuration = smp.wrap({
+  mode: "development",
   entry: "./src/index.tsx",
   target: "node",
   module: {
     rules: [
       {
         test: /\.(ts|js)x?$/,
+        include: path.resolve(__dirname, "src"),
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {
+            exclude: /node_modules/,
             presets: [
               "@babel/preset-env",
               "@babel/preset-react",
@@ -33,11 +36,16 @@ const config: webpack.Configuration = smp.wrap({
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
+  devtool: "inline-source-map",
   output: {
     path: path.resolve(__dirname, "build"),
     filename: "bundle.js",
     publicPath: "/",
   },
+  // watch: true,
+  // watchOptions: {
+  //   ignored: ["node_modules/**"],
+  // },
   devServer: {
     historyApiFallback: true,
     contentBase: path.join(__dirname, "build"),
@@ -55,16 +63,15 @@ const config: webpack.Configuration = smp.wrap({
   //     },
   //   },
   // },
+
   plugins: [
-    // new HtmlWebpackPlugin({
-    //   title: "",
-    //   template: "./build/index.html",
-    //   minify: {
-    //     collapseWhitespace: true,
-    //   },
-    //   hash: true,
-    //   inject: true,
-    // }),
+    new CleanWebpackPlugin({
+      // cleanStaleWebpackAssets: false
+      verbose: true,
+      dry: false,
+      cleanOnceBeforeBuildPatterns: ["!index.html"],
+    }),
+
     new ForkTsCheckerWebpackPlugin({
       async: false,
       eslint: {

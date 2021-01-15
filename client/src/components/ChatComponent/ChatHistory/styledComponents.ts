@@ -13,3 +13,10 @@ export const OptionsWrapper = styled.div`
   display: flex;
   justify-content: space-around;
 `;
+
+export const ConvWrapper = styled.div`
+  &:hover {
+    background-color: #7abcfd;
+    cursor: pointer;
+  }
+`;

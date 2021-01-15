@@ -9,6 +9,7 @@ import {
   Avatar,
   Input,
   Button,
+  Typography,
 } from "@material-ui/core";
 import {
   Send,
@@ -54,13 +55,16 @@ const Chat = ({
   const inputStyles = useInputStyles();
   const buttonStyles = useButtonStyles();
 
+  const isSelectedChat = name ? true : false;
   return (
     <Container className={containerStyles.root}>
       <Box className={headerBoxStyles.root}>
         <HeaderWrapper>
           <ItemsWrapper>
             <FiberManualRecord />
-            <h2>{name}</h2>
+            <Typography component="h5" variant="h5">
+              {name}
+            </Typography>
           </ItemsWrapper>
           <ItemsWrapper>
             <Button>
@@ -75,20 +79,25 @@ const Chat = ({
       <Box className={bodyBoxStyles.root}>
         <List className={listStyles.root}>
           <ChatWrapper ref={chatRef}>
-            {messages.map(
-              (message: Message): ReactNode => {
-                if (message.type === 1) {
-                  return (
-                    <ListItem className={listItemStyles.root}>
-                      <ListItemAvatar>
-                        <Avatar />
-                      </ListItemAvatar>
-                      <ListItemText secondary={message.body} />
-                    </ListItem>
-                  );
-                }
-              }
-            )}
+            {messages && messages.length > 0
+              ? messages.map(
+                  (message: Message): ReactNode => {
+                    if (message.type === 1) {
+                      return (
+                        <ListItem
+                          className={listItemStyles.root}
+                          key={message.id}
+                        >
+                          <ListItemAvatar>
+                            <Avatar />
+                          </ListItemAvatar>
+                          <ListItemText secondary={message.body} />
+                        </ListItem>
+                      );
+                    }
+                  }
+                )
+              : null}
           </ChatWrapper>
         </List>
       </Box>
@@ -105,7 +114,12 @@ const Chat = ({
             <Input
               className={inputStyles.root}
               value={message}
-              placeholder="Type your message here"
+              placeholder={
+                !isSelectedChat
+                  ? "Select a chat to start messaging"
+                  : "Type your message here"
+              }
+              readOnly={!isSelectedChat}
               onChange={(e) => {
                 setMessage(e.target.value);
               }}
@@ -118,7 +132,11 @@ const Chat = ({
             <Button>
               <Attachment />
             </Button>
-            <Button type="submit" classes={{ root: buttonStyles.root }}>
+            <Button
+              type="submit"
+              classes={{ root: buttonStyles.root }}
+              disabled={!isSelectedChat}
+            >
               <Send />
             </Button>
           </ChatActions>

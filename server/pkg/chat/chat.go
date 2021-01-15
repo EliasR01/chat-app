@@ -9,43 +9,58 @@ import (
 )
 
 type contact struct {
-	ID     string `json:"id"`
-	Name   string `json:"name"`
-	Email  string `json:"email"`
-	UserID int    `json:"userid"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	UserID   int    `json:"userid"`
+	Username string `json:"username"`
+	Address  string `json:"address"`
+	Phone    string `json:"phone"`
 }
 
 type conversation struct {
-	ID        string `json:"id"`
-	CreatorID string `json:"creatorId"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
-	DeletedAt string `json:"deletedAt"`
-	STS       string `json:"sts"`
+	ID        string         `json:"id"`
+	CreatedAt string         `json:"createdAt"`
+	UpdatedAt string         `json:"updatedAt"`
+	DeletedAt sql.NullString `json:"deletedAt"`
+	STS       string         `json:"sts"`
+	Creator   string         `json:"creator"`
+	Member    string         `json:"member"`
 }
 
 type message struct {
-	ID             string `json:"id"`
-	Message        string `json:"message"`
-	CreatedAt      string `json:"createdAt"`
-	UpdatedAt      string `json:"updatedAt"`
-	DeletedAt      string `json:"deletedAt"`
-	UserID         string `json:"userId"`
-	ConversationID string `json:"conversationId"`
-	STS            string `json:"sts"`
-	MessageType    string `json:"messageType"`
+	ID             string         `json:"id"`
+	Body           string         `json:"body"`
+	CreatedAt      string         `json:"createdAt"`
+	UpdatedAt      string         `json:"updatedAt"`
+	DeletedAt      sql.NullString `json:"deletedAt"`
+	UserID         string         `json:"userId"`
+	ConversationID string         `json:"conversationId"`
+	STS            string         `json:"sts"`
+	Type           int            `json:"type"`
 }
 
 type userData struct {
 	Contacts      []contact      `json:"contacts"`
 	Conversations []conversation `json:"conversations"`
 	Messages      []message      `json:"messages"`
+	People        []person       `json:"people"`
 }
 
 type attachment struct {
 	ID         string `json:"id"`
 	MessagesID string `json:"messagesId"`
 	FileURL    string `json:"fileUrl"`
+}
+
+type person struct {
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
+	ID        int    `json:"id"`
+	Address   string `json:"address"`
+	Phone     string `json:"phone"`
+	Username  string `json:"username"`
 }
 
 var contactData contact
@@ -56,23 +71,27 @@ var messageData message
 var messages []message
 var attachmentData attachment
 var attachments []attachment
+var user person
+var users []person
 var wg sync.WaitGroup
 
 //GetUserInfo retrieves all the user info, conversations and chats
 func GetUserInfo(db *sql.DB, w http.ResponseWriter, r *http.Request, data string) {
-	wg.Add(2)
-
+	wg.Add(3)
 	//Querying user contacts
 	go fetchContacts(db, data)
 
 	//Querying user conversations
 	go fetchConversations(db, data)
+
+	go fetchPeople(db)
 	wg.Wait()
 
 	userData := userData{
 		Contacts:      contacts,
 		Conversations: conversations,
 		Messages:      messages,
+		People:        users,
 	}
 
 	responseData, err := json.Marshal(userData)
@@ -81,15 +100,40 @@ func GetUserInfo(db *sql.DB, w http.ResponseWriter, r *http.Request, data string
 		log.Printf("Error converting response to bytes: %s", err)
 		return
 	}
-	w.WriteHeader(http.StatusAccepted)
 	w.Write(responseData)
+	clearVariables()
 
 }
 
+func clearVariables() {
+	contactData = contact{}
+	conversationData = conversation{}
+	messageData = message{}
+	attachmentData = attachment{}
+	user = person{}
+	conversations = nil
+	contacts = nil
+	messages = nil
+	attachments = nil
+	users = nil
+}
+
 func fetchContacts(db *sql.DB, data string) {
-	sqlContacts := `SELECT * FROM contacts WHERE user_id = $1`
+	sqlUser := `SELECT id FROM users WHERE username = $1`
+	var userID int
+	userRes, userErr := db.Query(sqlUser, data)
+
+	if userErr != nil {
+		log.Printf("Error querying user ID: %s", userErr)
+	}
+
+	for userRes.Next() {
+		userRes.Scan(&userID)
+	}
+
+	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	var rows = 0
-	contRes, contErr := db.Query(sqlContacts, data)
+	contRes, contErr := db.Query(sqlContacts, userID)
 
 	if contErr != nil {
 		log.Printf("Error querying contacts: %s", contErr)
@@ -97,18 +141,32 @@ func fetchContacts(db *sql.DB, data string) {
 	defer wg.Done()
 	defer contRes.Close()
 	for contRes.Next() {
-		log.Println("Row...")
-		contRes.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID)
+		contRes.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID, &contactData.Username, &contactData.Address, &contactData.Phone)
 		contacts = append(contacts, contactData)
 		rows++
 	}
 }
 
-func fetchConversations(db *sql.DB, data string) {
-	sqlConversation := `SELECT * FROM conversation WHERE creator_id = $1`
-	sqlMessages := `SELECT * FROM messages WHERE conversation_id = $1`
-	sqlAttachments := `SELECT * FROM attachments WHERE messages_id = $1`
+func fetchPeople(db *sql.DB) {
+	sqlPersons := `SELECT name, email, created_at, id, address, phone, username FROM users`
 
+	res, err := db.Query(sqlPersons)
+	if err != nil {
+		log.Printf("Error querying users: %s", err)
+	}
+
+	defer wg.Done()
+	defer res.Close()
+	for res.Next() {
+		res.Scan(&user.Name, &user.Email, &user.CreatedAt, &user.ID, &user.Address, &user.Phone, &user.Username)
+		users = append(users, user)
+	}
+}
+
+func fetchConversations(db *sql.DB, data string) {
+	sqlConversation := `SELECT ID, created_at, updated_at, deleted_at, sts, creator, member FROM conversation WHERE creator = $1 OR member = $1`
+	sqlMessages := `SELECT id, message, created_at, updated_at, deleted_at, user_id, conversation_id, sts, message_type FROM messages WHERE conversation_id = $1`
+	sqlAttachments := `SELECT id, messages_id, file_url FROM attachments WHERE messages_id = $1`
 	convRes, convErr := db.Query(sqlConversation, data)
 
 	if convErr != nil {
@@ -118,7 +176,12 @@ func fetchConversations(db *sql.DB, data string) {
 	defer wg.Done()
 	defer convRes.Close()
 	for convRes.Next() {
-		convRes.Scan(&conversationData.ID, &conversationData.CreatorID, &conversationData.CreatedAt, &conversationData.UpdatedAt, &conversationData.DeletedAt, &conversationData.STS)
+		err := convRes.Scan(&conversationData.ID, &conversationData.CreatedAt, &conversationData.UpdatedAt, &conversationData.DeletedAt, &conversationData.STS, &conversationData.Creator, &conversationData.Member)
+
+		if err != nil {
+			log.Printf("Error scaning conversation rows: %s", err)
+		}
+
 		conversations = append(conversations, conversationData)
 		//Querying user messages by conversation
 		messRes, messErr := db.Query(sqlMessages, conversationData.ID)
@@ -129,9 +192,14 @@ func fetchConversations(db *sql.DB, data string) {
 		}
 		defer messRes.Close()
 		for messRes.Next() {
-			messRes.Scan(&messageData.ID, &messageData.Message, &messageData.CreatedAt, &messageData.UpdatedAt, &messageData.DeletedAt, &messageData.UserID, &messageData.ConversationID, &messageData.STS, &messageData.MessageType)
+			err := messRes.Scan(&messageData.ID, &messageData.Body, &messageData.CreatedAt, &messageData.UpdatedAt, &messageData.DeletedAt, &messageData.UserID, &messageData.ConversationID, &messageData.STS, &messageData.Type)
+
+			if err != nil {
+				log.Printf("Error scaning messages rows: %s", err)
+			}
+
 			messages = append(messages, messageData)
-			if messageData.MessageType == "attachment" {
+			if messageData.Type == 2 {
 
 				//Querying user message attachment by message
 				attchRes, attchErr := db.Query(sqlAttachments, messageData.ID)
@@ -143,7 +211,12 @@ func fetchConversations(db *sql.DB, data string) {
 
 				defer attchRes.Close()
 				for attchRes.Next() {
-					attchRes.Scan(&attachmentData.ID, &attachmentData.MessagesID, &attachmentData.FileURL)
+					err := attchRes.Scan(&attachmentData.ID, &attachmentData.MessagesID, &attachmentData.FileURL)
+
+					if err != nil {
+						log.Printf("Error scaning attachment rows: %s", err)
+					}
+
 					attachments = append(attachments, attachmentData)
 				}
 

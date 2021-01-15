@@ -16,13 +16,18 @@ var upgrader = websocket.Upgrader{
 //Init websocket function
 func Init(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
-
 	if err != nil {
 		log.Print(err)
+	}
+
+	var data []string
+	for _, v := range r.URL.Query() {
+		data = append(data, v[0])
 	}
 	client := &Client{
 		Conn: conn,
 		Pool: pool,
+		User: data[0],
 	}
 
 	pool.Register <- client
