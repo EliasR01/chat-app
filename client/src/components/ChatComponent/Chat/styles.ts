@@ -1,5 +1,5 @@
 import { makeStyles, Theme } from "@material-ui/core";
-import { boxProps } from "./types";
+import { boxProps, itemProps } from "./types";
 
 export const useContainerStyles = makeStyles({
   root: {
@@ -39,21 +39,33 @@ export const useListStyles = makeStyles({
     width: "100%",
     height: "100%",
     display: "flex",
-    flex: 1,
-    justifyContent: "safe flex-end",
-    bottom: 0,
-    flexFlow: "column",
-    marginTop: "auto",
   },
 });
 
-export const useListItemStyles = makeStyles({
+export const useListItemStyles = makeStyles<Theme, itemProps>({
   root: {
-    width: "100%",
     display: "flex",
-    // alignSelf: "flex-end",
+    alignSelf: ({ primary }) => (primary ? "flex-end" : "flex-start"),
+    maxWidth: "50%",
+    backgroundColor: ({ primary }) => (primary ? "#0084FF" : "#C0C0C0"),
     marginBottom: "2%",
+    marginLeft: "5px",
+    borderRadius: "5px",
     fontSize: "1em",
+  },
+});
+
+export const useListItemAvatarStyles = makeStyles({
+  root: {
+    display: "flex",
+    justifyContent: "center",
+  },
+});
+
+export const useListItemTextStyles = makeStyles<Theme, itemProps>({
+  root: {
+    display: "flex",
+    justifyContent: ({ primary }) => (primary ? "flex-end" : "flex-start"),
   },
 });
 

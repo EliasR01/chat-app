@@ -1,6 +1,7 @@
 import styled from "styled-components";
 
 export const Wrapper = styled.div`
+  max-height: 70px;
   display: flex;
   justify-content: space-between;
   align-items: center;

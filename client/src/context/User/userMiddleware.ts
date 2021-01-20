@@ -73,14 +73,17 @@ export const userMiddleware = async (
       return result;
     }
     case "UPDATE": {
-      let result = false;
+      let result = "";
       await axios
         .put("http://localhost:4000/update", payload)
         .then((response) => {
-          if (response.data === 200) {
+          if (response.status === 200) {
             dispatch({ payload: response.data, type: "UPDATE" });
-            result = true;
+            result = response.data;
           }
+        })
+        .catch((err) => {
+          result = err;
         });
       return result;
     }

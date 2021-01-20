@@ -24,13 +24,18 @@ func Init(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	for _, v := range r.URL.Query() {
 		data = append(data, v[0])
 	}
-	client := &Client{
+
+	poolClient := &PoolClient{
 		Conn: conn,
 		Pool: pool,
-		User: data[0],
 	}
 
-	pool.Register <- client
-	client.Read()
+	clientData := &ClientData{
+		Client: poolClient,
+		User:   data[0],
+	}
+
+	pool.Register <- clientData
+	clientData.Read()
 
 }

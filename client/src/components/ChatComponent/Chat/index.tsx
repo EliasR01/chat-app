@@ -26,6 +26,8 @@ import {
   useListItemStyles,
   useInputStyles,
   useButtonStyles,
+  useListItemTextStyles,
+  useListItemAvatarStyles,
 } from "./styles";
 import {
   HeaderWrapper,
@@ -45,15 +47,20 @@ const Chat = ({
   messages,
   message,
   chatRef,
+  username,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const headerBoxStyles = useBoxStyles({ type: "h" });
   const bodyBoxStyles = useBoxStyles({ type: "b" });
   const chatBoxStyles = useBoxStyles({ type: "c" });
   const listStyles = useListStyles();
-  const listItemStyles = useListItemStyles();
+  const primaryListItemStyles = useListItemStyles({ primary: true });
+  const secondaryListItemStyles = useListItemStyles({ primary: false });
   const inputStyles = useInputStyles();
   const buttonStyles = useButtonStyles();
+  const primaryListItemTextStyles = useListItemTextStyles({ primary: true });
+  const secondaryListItemTextStyles = useListItemTextStyles({ primary: false });
+  const listItemAvatarStyles = useListItemAvatarStyles();
 
   const isSelectedChat = name ? true : false;
   return (
@@ -82,18 +89,38 @@ const Chat = ({
             {messages && messages.length > 0
               ? messages.map(
                   (message: Message): ReactNode => {
+                    const isPrimary = message.sender !== username;
+
                     if (message.type === 1) {
-                      return (
+                      const messageJsx = isPrimary ? (
                         <ListItem
-                          className={listItemStyles.root}
+                          className={primaryListItemStyles.root}
                           key={message.id}
                         >
-                          <ListItemAvatar>
+                          <ListItemText
+                            secondary={message.body}
+                            className={primaryListItemTextStyles.root}
+                          />
+                          <ListItemAvatar className={listItemAvatarStyles.root}>
                             <Avatar />
                           </ListItemAvatar>
-                          <ListItemText secondary={message.body} />
+                        </ListItem>
+                      ) : (
+                        <ListItem
+                          className={secondaryListItemStyles.root}
+                          key={message.id}
+                        >
+                          <ListItemAvatar className={listItemAvatarStyles.root}>
+                            <Avatar />
+                          </ListItemAvatar>
+                          <ListItemText
+                            secondary={message.body}
+                            className={secondaryListItemTextStyles.root}
+                          />
                         </ListItem>
                       );
+
+                      return messageJsx;
                     }
                   }
                 )

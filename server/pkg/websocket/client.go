@@ -6,11 +6,16 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-//Client type
-type Client struct {
+//ClientData type
+type ClientData struct {
+	Client *PoolClient
+	User   string
+}
+
+//PoolClient type holds the connection and pool information
+type PoolClient struct {
 	Conn *websocket.Conn
 	Pool *Pool
-	User string
 }
 
 //Message type
@@ -33,11 +38,11 @@ type User struct {
 }
 
 //React client function
-func (c *Client) Read() {
+func (c *ClientData) Read() {
 
 	defer func() {
-		c.Pool.Unregister <- c
-		err := c.Conn.Close()
+		c.Client.Pool.Unregister <- c
+		err := c.Client.Conn.Close()
 
 		if err != nil {
 			log.Printf("Error closing connection: %s", err)
@@ -46,13 +51,13 @@ func (c *Client) Read() {
 	}()
 
 	for {
-		messageType, p, err := c.Conn.ReadMessage()
+		messageType, p, err := c.Client.Conn.ReadMessage()
 		if err != nil {
 			log.Printf("Error: %s", err)
 			return
 		}
 
 		message := Message{Type: messageType, Body: string(p), Data: p}
-		c.Pool.Broadcast <- message
+		c.Client.Pool.Broadcast <- message
 	}
 }

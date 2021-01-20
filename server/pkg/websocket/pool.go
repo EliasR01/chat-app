@@ -11,9 +11,9 @@ import (
 
 //Pool type
 type Pool struct {
-	Register   chan *Client
-	Unregister chan *Client
-	Clients    map[*Client]bool
+	Register   chan *ClientData
+	Unregister chan *ClientData
+	Clients    map[string]*PoolClient
 	Broadcast  chan Message
 }
 
@@ -30,9 +30,9 @@ type messageData struct {
 //NewPool create pool function
 func NewPool() *Pool {
 	return &Pool{
-		Register:   make(chan *Client),
-		Unregister: make(chan *Client),
-		Clients:    make(map[*Client]bool),
+		Register:   make(chan *ClientData),
+		Unregister: make(chan *ClientData),
+		Clients:    make(map[string]*PoolClient),
 		Broadcast:  make(chan Message),
 	}
 }
@@ -40,37 +40,28 @@ func NewPool() *Pool {
 //Start starts the created pool
 func (pool *Pool) Start(db *sql.DB) {
 
-	sqlStatement := `INSERT INTO messages(id, message, created_at, updated_at, user_id, conversation_id, sts, message_type) VALUES(uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7) RETURNING id`
-	sqlQuery := `SELECT ID FROM USERS WHERE username = $1`
-	var ID int
+	sqlStatement := `INSERT INTO messages(id, message, created_at, updated_at, sender, conversation_id, sts, message_type) VALUES(uuid_generate_v4(), $1, $2, $3, $4, $5, $6, $7) RETURNING id`
 
 	for {
 		select {
 		case client := <-pool.Register:
-			pool.Clients[client] = true
+			pool.Clients[client.User] = client.Client
 			log.Printf("Size of Connection Pool: %d", len(pool.Clients))
-			for client := range pool.Clients {
-				client.Conn.WriteJSON(Message{Type: 0, Body: "New user connected"})
-			}
+			client.Client.Conn.WriteJSON(Message{Type: 0, Body: "New user connected"})
 			break
 		case client := <-pool.Unregister:
-			delete(pool.Clients, client)
+			delete(pool.Clients, client.User)
 			log.Printf("Size of Connection Pool: %d", len(pool.Clients))
 			break
 		case message := <-pool.Broadcast:
 			var data messageData
 			err := json.Unmarshal(message.Data, &data)
 
-			res, err := db.Query(sqlQuery, data.Sender)
-
 			if err != nil {
 				log.Printf("Error querying user after sending message: %s", err)
 				break
 			}
-			for res.Next() {
-				res.Scan(&ID)
-			}
-			err = db.QueryRow(sqlStatement, data.Body, time.Now(), time.Now(), ID, "123e4567-e89b-12d3-a456-426614174000", "READED", message.Type).Scan(&data.MessageID)
+			err = db.QueryRow(sqlStatement, data.Body, time.Now(), time.Now(), data.Sender, "123e4567-e89b-12d3-a456-426614174000", "READED", message.Type).Scan(&data.MessageID)
 
 			if err != nil {
 				log.Printf("Error inserting user after sending message: %s", err)
@@ -89,24 +80,16 @@ func (pool *Pool) Start(db *sql.DB) {
 				log.Printf("Error unmarshal or marshalling message data: %s", err)
 			}
 
-			for client := range pool.Clients {
-				if client.User == data.Sender {
-					log.Printf("Sending message to sender: %s", client.User)
-					if err := client.Conn.WriteMessage(message.Type, messageDataBody); err != nil {
-						log.Printf("Error sending message to client sender: %s", err)
-						break
-					}
-					continue
-				}
-				if client.User == data.Receiver {
-					log.Printf("Sending message to receiver: %s", client.User)
-					if err := client.Conn.WriteMessage(message.Type, messageDataBody); err != nil {
-						log.Printf("Error sending message to client receiver: %s", err)
-						break
-					}
-					break
+			if err := pool.Clients[data.Sender].Conn.WriteMessage(message.Type, messageDataBody); err != nil {
+				log.Printf("Error sending message to client sender: %s", err)
+			}
+
+			if pool.Clients[data.Receiver] != nil {
+				if err := pool.Clients[data.Receiver].Conn.WriteMessage(message.Type, messageDataBody); err != nil {
+					log.Printf("Error sending message to client receiver: %s", err)
 				}
 			}
+
 		}
 	}
 }

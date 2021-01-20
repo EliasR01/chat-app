@@ -51,6 +51,7 @@ const ChatHistory = ({
   handleClose,
   logout,
   openProfile,
+  search,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const boxStyles = useBoxStyles();
@@ -60,17 +61,27 @@ const ChatHistory = ({
   const { state: chatState } = useContext(ChatContext);
   const { state: userState } = useContext(UserContext);
   let jsx;
+
+  //This renders a list based on the option that is selected
   switch (option) {
     case "history" || "archived":
       jsx =
         conversations && conversations.length > 0
           ? conversations.map((conv) => {
+              //Filtered messages by conversations
               const filteredMessage =
                 chatState.messages &&
                 chatState.messages.filter((m) => m.conversationId === conv.id);
+              //Last message that will be shown in the Chat Icon at the ChatHistory
               const lastMessage =
                 filteredMessage && filteredMessage[filteredMessage.length - 1];
+              //User variable, will be the username that'll be shown next to the Chat Avatar at the ChatHistory.
               const user =
+                conv.creator === userState.username
+                  ? conv.member
+                  : conv.creator;
+              //Username variable, selects the contact username in order to put the user name in the Chat component
+              const username =
                 conv.creator === userState.username
                   ? conv.member
                   : conv.creator;
@@ -78,7 +89,7 @@ const ChatHistory = ({
                 <ConvWrapper
                   key={conv.id}
                   onClick={() => {
-                    setChat(conv.member);
+                    setChat(username);
                     setConv(conv.id);
                   }}
                 >
@@ -194,6 +205,7 @@ const ChatHistory = ({
           placeholder="Search here..."
           disableUnderline={true}
           className={inputStyles.root}
+          onChange={(e) => search(e)}
           startAdornment={
             <InputAdornment position="start">
               <Search />

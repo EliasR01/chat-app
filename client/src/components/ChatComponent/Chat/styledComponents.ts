@@ -27,6 +27,10 @@ export const InputWrapper = styled.div`
 `;
 
 export const ChatWrapper = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: safe flex-end;
+  flex-flow: column;
   overflow: auto;
   ::-webkit-scrollbar {
     display: none;

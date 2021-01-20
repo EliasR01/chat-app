@@ -34,7 +34,7 @@ type message struct {
 	CreatedAt      string         `json:"createdAt"`
 	UpdatedAt      string         `json:"updatedAt"`
 	DeletedAt      sql.NullString `json:"deletedAt"`
-	UserID         string         `json:"userId"`
+	Sender         string         `json:"sender"`
 	ConversationID string         `json:"conversationId"`
 	STS            string         `json:"sts"`
 	Type           int            `json:"type"`
@@ -165,7 +165,7 @@ func fetchPeople(db *sql.DB) {
 
 func fetchConversations(db *sql.DB, data string) {
 	sqlConversation := `SELECT ID, created_at, updated_at, deleted_at, sts, creator, member FROM conversation WHERE creator = $1 OR member = $1`
-	sqlMessages := `SELECT id, message, created_at, updated_at, deleted_at, user_id, conversation_id, sts, message_type FROM messages WHERE conversation_id = $1`
+	sqlMessages := `SELECT id, message, created_at, updated_at, deleted_at, sender, conversation_id, sts, message_type FROM messages WHERE conversation_id = $1`
 	sqlAttachments := `SELECT id, messages_id, file_url FROM attachments WHERE messages_id = $1`
 	convRes, convErr := db.Query(sqlConversation, data)
 
@@ -192,7 +192,7 @@ func fetchConversations(db *sql.DB, data string) {
 		}
 		defer messRes.Close()
 		for messRes.Next() {
-			err := messRes.Scan(&messageData.ID, &messageData.Body, &messageData.CreatedAt, &messageData.UpdatedAt, &messageData.DeletedAt, &messageData.UserID, &messageData.ConversationID, &messageData.STS, &messageData.Type)
+			err := messRes.Scan(&messageData.ID, &messageData.Body, &messageData.CreatedAt, &messageData.UpdatedAt, &messageData.DeletedAt, &messageData.Sender, &messageData.ConversationID, &messageData.STS, &messageData.Type)
 
 			if err != nil {
 				log.Printf("Error scaning messages rows: %s", err)

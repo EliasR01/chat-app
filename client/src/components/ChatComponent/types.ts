@@ -14,6 +14,16 @@ export type Conversation = {
   sts: string;
 };
 
+export type User = {
+  id?: number;
+  name: string;
+  email: string;
+  password?: string;
+  address?: string;
+  phone?: string;
+  username?: string;
+};
+
 export type Message = {
   type: number;
   body: string;

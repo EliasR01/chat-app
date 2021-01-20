@@ -39,7 +39,6 @@ export const useModalStyles = makeStyles({
     justifyContent: "center",
     alignItems: "center",
     border: "none",
-    transition: "all 0.2s ease-out",
   },
 });
 
@@ -52,7 +51,6 @@ export const usePaperStyles = makeStyles({
 export const useTextFieldStyles = makeStyles({
   root: {
     width: "100%",
-    height: "50%",
     marginTop: "2%",
   },
 });

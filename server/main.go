@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"github.com/EliasR01/chat-app/go-server/pkg/auth"
 	"github.com/EliasR01/chat-app/go-server/pkg/chat"
 	"github.com/EliasR01/chat-app/go-server/pkg/register"
+	"github.com/EliasR01/chat-app/go-server/pkg/user"
 	"github.com/EliasR01/chat-app/go-server/pkg/websocket"
 	_ "github.com/lib/pq"
 )
@@ -18,7 +20,7 @@ import (
 const (
 	host     = "localhost"
 	port     = 5432
-	user     = "postgres"
+	login    = "postgres"
 	password = "postgres"
 	dbname   = "hellochat"
 )
@@ -28,7 +30,7 @@ var err error
 
 func main() {
 	mux := http.NewServeMux()
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, login, password, dbname)
 
 	db, err = sql.Open("postgres", psqlInfo)
 
@@ -55,8 +57,10 @@ func main() {
 
 	mux.HandleFunc("/auth", authHandler)
 	mux.HandleFunc("/register", registerHandler)
-	mux.HandleFunc("/user", userHandler)
+	mux.HandleFunc("/user", chatHandler)
 	mux.HandleFunc("/logout", logoutHandler)
+	mux.HandleFunc("/update", userHandler)
+	mux.HandleFunc("/delete", userHandler)
 
 	server := http.Server{Addr: ":4000", Handler: mux}
 	log.Println("Server started on port 4000")
@@ -72,7 +76,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	auth.Logout(w)
 }
 
-func userHandler(w http.ResponseWriter, r *http.Request) {
+func chatHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
@@ -92,9 +96,7 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	var data []string
-	log.Println(r.URL)
 	for _, v := range r.URL.Query() {
-		log.Println(v)
 		data = append(data, v[0])
 	}
 	auth.ValidateUser(data, db, w, r)
@@ -117,6 +119,44 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			register.User(data, db, w)
 		}
+	}
+
+}
+
+func userHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+	w.Header().Add("Access-Control-Allow-Methods", "PUT")
+	w.Header().Add("Access-Control-Allow-Methods", "DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	if r.Method == http.MethodPut {
+		bodyBytes, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("Error: %s", err)
+		}
+		var body user.Data
+
+		json.Unmarshal(bodyBytes, &body)
+		log.Println(body)
+		response := user.UpdateUser(body, db, body.CurrUsername)
+
+		if response == 0 {
+			w.Write([]byte("User updated successfully!"))
+		} else if response == 1 {
+			w.WriteHeader(http.StatusConflict)
+			w.Write([]byte("There was an error updating the user"))
+		} else if response == 2 {
+			w.WriteHeader(http.StatusNotAcceptable)
+			w.Write([]byte("Password is incorrect"))
+		}
+
+	} else if r.Method == http.MethodDelete {
+		data := r.PostForm
+		log.Println(data)
+	} else {
+		w.Write([]byte("Method not allowed!"))
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 
 }

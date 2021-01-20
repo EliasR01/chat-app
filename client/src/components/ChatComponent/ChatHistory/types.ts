@@ -8,12 +8,14 @@ export type props = {
   conversations?: conversation[];
   contacts?: contact[];
   people?: User[];
-  showProfile: boolean;
   anchorEl: HTMLElement | null;
   setAnchorEl: (e: MouseEvent<HTMLButtonElement> | null) => void;
   handleClose: () => void;
   logout: () => void;
   openProfile: Dispatch<SetStateAction<boolean>>;
+  search: (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => void;
 };
 
 export type conversation = {

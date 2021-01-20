@@ -7,7 +7,7 @@ import React, {
   MouseEvent,
   useMemo,
 } from "react";
-import { Paper, LinearProgress } from "@material-ui/core";
+import { Paper, LinearProgress, Dialog, DialogTitle } from "@material-ui/core";
 import Chat from "./Chat";
 import ChatHistory from "./ChatHistory";
 import ChatProfile from "./ChatProfile";
@@ -16,7 +16,7 @@ import { usePaperStyles } from "./styles";
 import { UserContext } from "../../context/User/UserContext";
 import { ChatContext } from "../../context/Chat/ChatContext";
 import { closeConnection } from "../../websocket/index";
-import { props, Conversation, Message, Contact } from "./types";
+import { props, Conversation, Message, Contact, User } from "./types";
 
 const ChatComponent = ({ history }: props): ReactElement => {
   const paperStyles = usePaperStyles();
@@ -26,6 +26,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
   const [currChat, setCurrChat] = useState<string>("");
   const [currConv, setCurrConv] = useState<string>("");
   const [currUser, setCurrUser] = useState<Contact[] | null | undefined>([]);
+  const [searchValue, setSearchValue] = useState<string>("");
   const [toggleProfile, setToggleProfile] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
@@ -33,12 +34,12 @@ const ChatComponent = ({ history }: props): ReactElement => {
   const [openProfile, setOpenProfile] = useState<boolean>(false);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { state: chatState, dispatch: chatDispatch } = useContext(ChatContext);
-  const chatRef = useRef<HTMLDivElement>(null);
-
-  const contacts = chatState.contacts;
-  const people = chatState.people?.filter(
-    (person) => person.name !== userState.name
+  const [contacts, setContacts] = useState<Contact[] | undefined>(
+    chatState.contacts
   );
+  const [people, setPeople] = useState<User[] | undefined>(chatState.people);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const [modalResponse, setModalResponse] = useState<string | boolean>(false);
 
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
@@ -65,16 +66,50 @@ const ChatComponent = ({ history }: props): ReactElement => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currChat]);
 
+  //This only executes when tthe search input field is changed
+  //It changes the values depending on the selected option, to filter the conversations or de contacts according to the value to search
+  useEffect(() => {
+    if (option === "history" || option === "archived") {
+      const convs = conversations?.filter((conv) =>
+        conv.member.includes(searchValue)
+      );
+      setConversations(convs);
+    } else if (option === "people") {
+      const cont = contacts?.filter(
+        (contact) =>
+          contact.name.includes(searchValue) ||
+          contact.username.includes(searchValue)
+      );
+
+      setContacts(cont);
+    } else if (option === "contacts") {
+      const peop = people?.filter(
+        (person) =>
+          person.name.includes(searchValue) ||
+          person.username?.includes(searchValue)
+      );
+
+      setPeople(peop);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchValue]);
+
   //This function executes when changing the current option to see the chats, contacts, people or archived chats.
   useEffect(() => {
     if (option === "archived") {
       const convs = chatState.conversations?.filter(
-        (conv) => conv.sts === "ARCHIVED" && conv.member !== userState.username
+        (conv) =>
+          conv.sts === "ARCHIVED" &&
+          (conv.creator === userState.username ||
+            conv.member === userState.username)
       );
       setConversations(convs);
     } else if (option === "history") {
       const convs = chatState.conversations?.filter(
-        (conv) => conv.sts === "CREATED" && conv.member !== userState.username
+        (conv) =>
+          conv.sts === "CREATED" &&
+          (conv.creator === userState.username ||
+            conv.member === userState.username)
       );
       setConversations(convs);
     }
@@ -86,6 +121,9 @@ const ChatComponent = ({ history }: props): ReactElement => {
     fetchMessages();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  //Calls every time that messages are changed, or the user selects other conversation.
+  //It changes the messages variable and set the messages that corresponds to the selected conversation
   useEffect(() => {
     const filteredMessages =
       chatState.messages &&
@@ -106,8 +144,8 @@ const ChatComponent = ({ history }: props): ReactElement => {
     });
   }, [messages]);
 
-  const currUsername =
-    currUser && currUser.length > 0 ? currUser[0].name : null;
+  // const currUsername =
+  //   currUser && currUser.length > 0 ? currUser[0].name : null;
 
   //Function that sends the message
   const send = (): void => {
@@ -122,6 +160,13 @@ const ChatComponent = ({ history }: props): ReactElement => {
     ];
     chatDispatch("SEND", { messages: socketMessage });
     setMessage("");
+  };
+
+  //Function that changes the searchValue state
+  const search = (
+    e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ): void => {
+    setSearchValue(e.target.value);
   };
 
   //Function that closes the Menu, in the ChatProfile component
@@ -154,7 +199,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
       }
     });
   };
-
+  console.log(modalResponse);
   const returnJsx = loading ? (
     <LinearProgress />
   ) : (
@@ -172,10 +217,11 @@ const ChatComponent = ({ history }: props): ReactElement => {
         handleClose={closeMenu}
         logout={logout}
         openProfile={setOpenProfile}
-        showProfile={false}
+        search={search}
       />
       <Chat
-        name={currUsername}
+        name={user?.name}
+        username={user?.username}
         setMessage={setMessage}
         send={send}
         messages={messages}
@@ -187,7 +233,17 @@ const ChatComponent = ({ history }: props): ReactElement => {
         toggle={setToggleProfile}
         showProfile={toggleProfile}
       />
-      <ModalProfile open={openProfile} setOpen={setOpenProfile} />
+      <ModalProfile
+        open={openProfile}
+        setOpen={setOpenProfile}
+        setResponse={setModalResponse}
+      />
+      <Dialog
+        open={typeof modalResponse === "string" ? true : false}
+        onClose={() => setModalResponse(false)}
+      >
+        <DialogTitle>{modalResponse}</DialogTitle>
+      </Dialog>
     </Paper>
   );
 
