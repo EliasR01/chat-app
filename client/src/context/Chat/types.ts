@@ -24,6 +24,7 @@ export type Conversation = {
   updatedAt: string;
   deletedAt: string;
   sts: string;
+  lastMessage: string;
 };
 
 export type Contact = {
@@ -38,11 +39,19 @@ export type Contact = {
 
 export type State = {
   username?: string;
-  messages: Message[];
+  messages: MessageMap;
   attachments?: Attachment[];
-  conversations?: Conversation[];
+  conversations?: ConversationMap;
   contacts?: Contact[];
   people?: User[];
+};
+
+type MessageMap = {
+  [ID: string]: Message;
+};
+
+type ConversationMap = {
+  [ID: string]: Conversation;
 };
 
 export type Action = {

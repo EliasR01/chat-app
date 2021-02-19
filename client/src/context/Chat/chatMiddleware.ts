@@ -12,7 +12,7 @@ export const chatMiddleware = async (
       //Fetch the chat information: [messages, conversations, contacts, all the people registered in the application]
       let result = false;
       await axios
-        .get(`http://localhost:4000/user?user=${payload.username}`, {
+        .get(`${process.env.BACKEND_ENDPOINT}user?user=${payload.username}`, {
           withCredentials: true,
         })
         .then((response) => {
@@ -34,6 +34,24 @@ export const chatMiddleware = async (
       //Receive the message
       dispatch({ payload: payload, type: "RECEIVE" });
       return true;
+    }
+    case "ADD_CONTACT": {
+      let result = false;
+      console.log(payload);
+      await axios
+        .post(`${process.env.BACKEND_ENDPOINT}add_contact`, payload, {
+          withCredentials: true,
+        })
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch({ payload: response.data, type: action });
+            result = true;
+          }
+        })
+        .catch(() => {
+          result = false;
+        });
+      return result;
     }
     default:
       return false;

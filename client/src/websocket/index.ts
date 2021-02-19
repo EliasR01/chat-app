@@ -1,4 +1,4 @@
-import { Message } from "./types";
+import { MessageMap } from "./types";
 
 let socket: WebSocket;
 interface cb {
@@ -26,7 +26,7 @@ export const connect = ({ messageHandler, username }: cb): void => {
   };
 };
 
-export const sendMsg = (msg: Message): void => {
+export const sendMsg = (msg?: MessageMap): void => {
   const message = JSON.stringify(msg);
   socket.send(message);
 };

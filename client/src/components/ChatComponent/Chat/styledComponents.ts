@@ -43,3 +43,8 @@ export const Form = styled.form`
   display: flex;
   overflow: none;
 `;
+
+export const EmojiDialog = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`;

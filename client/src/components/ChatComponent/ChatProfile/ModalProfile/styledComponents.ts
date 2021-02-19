@@ -14,6 +14,7 @@ export const InformationForm = styled.form`
 `;
 
 export const ButtonWrapper = styled.div`
+  width: 100%;
   display: flex;
   flex-flow: column;
   justify-content: center;

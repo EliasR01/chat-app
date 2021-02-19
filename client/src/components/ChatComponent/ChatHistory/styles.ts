@@ -38,6 +38,7 @@ export const useInputSyles = makeStyles({
 export const useButtonStyles = makeStyles({
   root: {
     color: "#fff",
+    margin: "0 2px",
   },
 });
 

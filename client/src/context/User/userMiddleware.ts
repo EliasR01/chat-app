@@ -12,12 +12,12 @@ export const userMiddleware = async (
       let result = false;
       await axios
         .get(
-          `http://localhost:4000/auth?type=${action}&email=${payload.email}&password=${payload.password}`,
+          `${process.env.BACKEND_ENDPOINT}auth?type=${action}&email=${payload.email}&password=${payload.password}`,
           { withCredentials: true }
         )
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "LOGIN" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           } else {
             result = response.data;
@@ -31,10 +31,10 @@ export const userMiddleware = async (
     case "REGISTER": {
       let result = false;
       await axios
-        .post("http://localhost:4000/register", payload)
+        .post(`${process.env.BACKEND_ENDPOINT}register`, payload)
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "REGISTER" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           } else {
             result = response.data;
@@ -48,12 +48,12 @@ export const userMiddleware = async (
     case "RELOAD": {
       let result = false;
       await axios
-        .get(`http://localhost:4000/auth?type=${action}`, {
+        .get(`${process.env.BACKEND_ENDPOINT}auth?type=${action}`, {
           withCredentials: true,
         })
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "RELOAD" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           }
         })
@@ -64,21 +64,23 @@ export const userMiddleware = async (
     }
     case "LOGOUT": {
       let result = false;
-      await axios.get("http://localhost:4000/logout").then((response) => {
-        if (response.status === 200) {
-          dispatch({ payload: response.data, type: "LOGOUT" });
-          result = true;
-        }
-      });
+      await axios
+        .get(`${process.env.BACKEND_ENDPOINT}logout`)
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch({ payload: response.data, type: action });
+            result = true;
+          }
+        });
       return result;
     }
     case "UPDATE": {
       let result = "";
       await axios
-        .put("http://localhost:4000/update", payload)
+        .put(`${process.env.BACKEND_ENDPOINT}update`, payload)
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "UPDATE" });
+            dispatch({ payload: response.data, type: action });
             result = response.data;
           }
         })

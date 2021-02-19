@@ -39,6 +39,10 @@ export const useModalStyles = makeStyles({
     justifyContent: "center",
     alignItems: "center",
     border: "none",
+    overflow: "auto",
+    "&:focus": {
+      outline: "none",
+    },
   },
 });
 
@@ -52,5 +56,22 @@ export const useTextFieldStyles = makeStyles({
   root: {
     width: "100%",
     marginTop: "2%",
+    padding: "0 5px",
+  },
+});
+
+export const useButtonStyles = makeStyles({
+  root: {
+    width: "20%",
+    height: "20%",
+    backgroundColor: "#4083ff",
+    color: "white",
+    fontWeight: "bold",
+    padding: "2px",
+    "&:hover": {
+      transform: "scale(1.025)",
+      cursor: "pointer",
+      backgroundColor: "#71a3ff",
+    },
   },
 });

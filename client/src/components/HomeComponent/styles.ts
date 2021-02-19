@@ -15,6 +15,7 @@ export const usePaperStyles = makeStyles({
 export const useBoxStyles = makeStyles<Theme, BoxProps>(() => ({
   root: {
     width: ({ type }) => (type === "b" ? "40%" : "auto"),
+    height: "100%",
     display: "flex",
     flexFlow: ({ type }) => (type === "b" ? "row" : "column"),
     justifyContent: ({ type }) => (type === "b" ? "space-around" : "center"),
@@ -30,6 +31,9 @@ export const useButtonStyles = makeStyles<Theme, ButtonProps>(() => ({
     background: ({ color }) => color,
     fontSize: "1em",
     fontWeight: "bold",
+    "&:hover": {
+      transform: "scale(1.025)",
+    },
   },
 }));
 
@@ -51,7 +55,7 @@ export const useContainerStyles = makeStyles({
 export const useCardStyles = makeStyles<Theme, CardProps>(() => ({
   root: {
     width: "100%",
-    height: ({ type }) => (type === "login" ? "auto" : "50%"),
+    height: ({ type }) => (type === "login" ? "100%" : "50%"),
     display: "flex",
     flexFlow: ({ type }) => (type === "login" ? "column" : "row"),
     justifyContent: "space-around",

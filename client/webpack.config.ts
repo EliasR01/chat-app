@@ -3,6 +3,9 @@ import webpack from "webpack";
 import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
 import SpeedMeasurePlugin from "speed-measure-webpack-plugin";
 import { CleanWebpackPlugin } from "clean-webpack-plugin";
+import dotenv from "dotenv";
+
+const env = dotenv.config();
 
 const smp = new SpeedMeasurePlugin();
 
@@ -10,6 +13,7 @@ const config: webpack.Configuration = smp.wrap({
   mode: "development",
   entry: "./src/index.tsx",
   target: "node",
+  devtool: "inline-source-map",
   module: {
     rules: [
       {
@@ -28,6 +32,10 @@ const config: webpack.Configuration = smp.wrap({
           },
         },
       },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     ],
   },
   performance: {
@@ -36,42 +44,29 @@ const config: webpack.Configuration = smp.wrap({
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
   },
-  devtool: "inline-source-map",
   output: {
-    path: path.resolve(__dirname, "build"),
-    filename: "bundle.js",
+    path: path.resolve(__dirname, "/build"),
     publicPath: "/",
+    filename: "bundle.js",
   },
-  // watch: true,
-  // watchOptions: {
-  //   ignored: ["node_modules/**"],
-  // },
   devServer: {
     historyApiFallback: true,
     contentBase: path.join(__dirname, "build"),
     compress: true,
+    open: true,
+    hot: true,
     port: 8000,
+    clientLogLevel: "info",
+    hotOnly: true,
   },
-  // optimization: {
-  //   splitChunks: {
-  //     cacheGroups: {
-  //       commons: {
-  //         test: /[\\/]node_modules[\\/]/,
-  //         name: "vendors",
-  //         chunks: "all",
-  //       },
-  //     },
-  //   },
-  // },
 
   plugins: [
     new CleanWebpackPlugin({
-      // cleanStaleWebpackAssets: false
       verbose: true,
       dry: false,
       cleanOnceBeforeBuildPatterns: ["!index.html"],
     }),
-
+    new webpack.EnvironmentPlugin(Object.keys(env.parsed || {})),
     new ForkTsCheckerWebpackPlugin({
       async: false,
       eslint: {

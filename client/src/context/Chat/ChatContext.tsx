@@ -12,9 +12,9 @@ import { chatReducer } from "./chatReducer";
 import { UserContext } from "../User/UserContext";
 
 const initialState: State = {
-  messages: [],
+  messages: {},
   attachments: [],
-  conversations: [],
+  conversations: {},
   contacts: [],
   people: [],
 };
@@ -42,10 +42,15 @@ export const ChatProvider = ({ children }: Children): ReactElement => {
   useEffect(() => {
     const messageHandler = (msg: MessageEvent): void => {
       const data = JSON.parse(msg.data);
+      let key = "";
+      for (const index in data) {
+        key = index;
+      }
+
       if (typeof data !== "string") {
-        if (data.type === 1) {
+        if (data[key] && data[key].type === 1) {
           const payloadState: State = {
-            messages: [data],
+            messages: data,
           };
           dispatch({ type: "RECEIVE", payload: payloadState });
         }

@@ -35,7 +35,6 @@ import {
 } from "./styles";
 import { IconsWrapper, OptionsWrapper, ConvWrapper } from "./styledComponents";
 import { props } from "./types";
-import { ChatContext } from "../../../context/Chat/ChatContext";
 import { UserContext } from "../../../context/User/UserContext";
 
 const ChatHistory = ({
@@ -47,18 +46,19 @@ const ChatHistory = ({
   people,
   contacts,
   anchorEl,
-  setAnchorEl,
+  anchorOptions,
   handleClose,
   logout,
   openProfile,
   search,
+  menuOption,
+  addContact,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const boxStyles = useBoxStyles();
   const inputStyles = useInputSyles();
   const buttonStyles = useButtonStyles();
   const iconStyles = useIconStyles();
-  const { state: chatState } = useContext(ChatContext);
   const { state: userState } = useContext(UserContext);
   let jsx;
 
@@ -68,13 +68,6 @@ const ChatHistory = ({
       jsx =
         conversations && conversations.length > 0
           ? conversations.map((conv) => {
-              //Filtered messages by conversations
-              const filteredMessage =
-                chatState.messages &&
-                chatState.messages.filter((m) => m.conversationId === conv.id);
-              //Last message that will be shown in the Chat Icon at the ChatHistory
-              const lastMessage =
-                filteredMessage && filteredMessage[filteredMessage.length - 1];
               //User variable, will be the username that'll be shown next to the Chat Avatar at the ChatHistory.
               const user =
                 conv.creator === userState.username
@@ -97,10 +90,7 @@ const ChatHistory = ({
                     <ListItemAvatar>
                       <Avatar alt="Some Photo" />
                     </ListItemAvatar>
-                    <ListItemText
-                      primary={user}
-                      secondary={lastMessage && lastMessage.body}
-                    />
+                    <ListItemText primary={user} secondary={conv.lastMessage} />
                     <ListItemSecondaryAction>
                       <Lens />
                     </ListItemSecondaryAction>
@@ -117,7 +107,26 @@ const ChatHistory = ({
           ? people.map((person) => {
               return (
                 <ConvWrapper key={person.id}>
-                  <ListItem alignItems="flex-start">
+                  <Menu
+                    id="simple-menu"
+                    keepMounted
+                    anchorEl={anchorEl}
+                    open={menuOption === "people"}
+                    onClose={handleClose}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        anchorOptions(null, "");
+                        addContact(person);
+                      }}
+                    >
+                      Add Contact
+                    </MenuItem>
+                  </Menu>
+                  <ListItem
+                    alignItems="flex-start"
+                    onClick={(e) => anchorOptions(e.currentTarget, "people")}
+                  >
                     <ListItemAvatar>
                       <Avatar alt="Some Photo" />
                     </ListItemAvatar>
@@ -141,7 +150,34 @@ const ChatHistory = ({
           ? contacts.map((contact) => {
               return (
                 <ConvWrapper key={contact.id}>
-                  <ListItem alignItems="flex-start">
+                  <Menu
+                    id="simple-menu"
+                    keepMounted
+                    anchorEl={anchorEl}
+                    open={menuOption === "contact"}
+                    onClose={handleClose}
+                  >
+                    <MenuItem
+                      onClick={() => {
+                        anchorOptions(null, "");
+                        openProfile(true);
+                      }}
+                    >
+                      Text a message
+                    </MenuItem>
+                    <MenuItem
+                      onClick={() => {
+                        anchorOptions(null, "");
+                        openProfile(true);
+                      }}
+                    >
+                      Remove contact
+                    </MenuItem>
+                  </Menu>
+                  <ListItem
+                    alignItems="flex-start"
+                    onClick={(e) => anchorOptions(e.currentTarget, "contact")}
+                  >
                     <ListItemAvatar>
                       <Avatar alt="Some Photo" />
                     </ListItemAvatar>
@@ -171,19 +207,23 @@ const ChatHistory = ({
           <Button className={buttonStyles.root}>
             <AddCircle />
           </Button>
-          <Button aria-controls="simple-menu" onClick={(e) => setAnchorEl(e)}>
+          <Button
+            aria-controls="simple-menu"
+            onClick={(e) => anchorOptions(e.currentTarget, "profile")}
+            className={buttonStyles.root}
+          >
             <MoreVert />
           </Button>
           <Menu
             id="simple-menu"
             keepMounted
             anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
+            open={menuOption === "profile"}
             onClose={handleClose}
           >
             <MenuItem
               onClick={() => {
-                setAnchorEl(null);
+                anchorOptions(null, "");
                 openProfile(true);
               }}
             >
@@ -191,7 +231,7 @@ const ChatHistory = ({
             </MenuItem>
             <MenuItem
               onClick={() => {
-                setAnchorEl(null);
+                anchorOptions(null, "");
                 logout();
               }}
             >

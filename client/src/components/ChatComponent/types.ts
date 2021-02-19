@@ -12,6 +12,7 @@ export type Conversation = {
   updatedAt: string;
   deletedAt: string;
   sts: string;
+  lastMessage: string;
 };
 
 export type User = {
@@ -25,6 +26,7 @@ export type User = {
 };
 
 export type Message = {
+  id: string;
   type: number;
   body: string;
   sender?: string;
