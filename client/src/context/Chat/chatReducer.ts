@@ -20,6 +20,7 @@ export const chatReducer = (state: State, action: Action): State => {
       const receivedMessage = message[ID];
 
       state.messages[ID] = receivedMessage;
+      console.log(state);
       return state;
     }
     case "LOGIN": {
@@ -29,6 +30,22 @@ export const chatReducer = (state: State, action: Action): State => {
     case "ADD_CONTACT": {
       const data = action.payload;
       return { ...state, contacts: data.contacts };
+    }
+    case "REMOVE_CONTACT": {
+      const data = action.payload;
+      return { ...state, contacts: data.contacts };
+    }
+    case "CREATE_CONV": {
+      const data = action.payload;
+      let convId = "";
+      for (const index in data.conversations) {
+        convId = index;
+      }
+
+      const newConv = data.conversations[convId];
+
+      state.conversations[convId] = newConv;
+      return state;
     }
     default:
       return state;

@@ -6,7 +6,7 @@ import React, {
   useContext,
 } from "react";
 import { connect } from "../../websocket";
-import { State, Children } from "./types";
+import { State, Children, Payload, Response } from "./types";
 import { chatMiddleware } from "./chatMiddleware";
 import { chatReducer } from "./chatReducer";
 import { UserContext } from "../User/UserContext";
@@ -21,19 +21,20 @@ const initialState: State = {
 
 export const ChatContext = createContext<{
   state: State;
-  dispatch: (action: string, payload: State) => Promise<boolean>;
+  dispatch: (action: string, payload: Payload) => Promise<Response>;
 }>({
   state: initialState,
-  dispatch: async () => false,
+  dispatch: async () => {
+    return { data: "Nothing executed", code: 0 };
+  },
 });
 
 export const ChatProvider = ({ children }: Children): ReactElement => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { state: userState } = useContext(UserContext);
-
   //This is a hook that will handle all the dispatch operations needed for the ChatComponent functionality
   //including sending messages, receiving, querying and mutating messages, all kind of operations with the API.
-  const useMiddleware = (action: string, data: State): Promise<boolean> => {
+  const useMiddleware = (action: string, data: Payload): Promise<Response> => {
     return chatMiddleware(action, data, dispatch);
   };
 
@@ -51,6 +52,7 @@ export const ChatProvider = ({ children }: Children): ReactElement => {
         if (data[key] && data[key].type === 1) {
           const payloadState: State = {
             messages: data,
+            conversations: state.conversations,
           };
           dispatch({ type: "RECEIVE", payload: payloadState });
         }

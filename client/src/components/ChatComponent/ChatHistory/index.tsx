@@ -53,6 +53,8 @@ const ChatHistory = ({
   search,
   menuOption,
   addContact,
+  removeContact,
+  createConv,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const boxStyles = useBoxStyles();
@@ -61,7 +63,6 @@ const ChatHistory = ({
   const iconStyles = useIconStyles();
   const { state: userState } = useContext(UserContext);
   let jsx;
-
   //This renders a list based on the option that is selected
   switch (option) {
     case "history" || "archived":
@@ -160,7 +161,7 @@ const ChatHistory = ({
                     <MenuItem
                       onClick={() => {
                         anchorOptions(null, "");
-                        openProfile(true);
+                        createConv(contact.username);
                       }}
                     >
                       Text a message
@@ -168,7 +169,7 @@ const ChatHistory = ({
                     <MenuItem
                       onClick={() => {
                         anchorOptions(null, "");
-                        openProfile(true);
+                        removeContact(contact);
                       }}
                     >
                       Remove contact
@@ -204,7 +205,10 @@ const ChatHistory = ({
           HELLOCHAT
         </Typography>
         <OptionsWrapper>
-          <Button className={buttonStyles.root}>
+          <Button
+            className={buttonStyles.root}
+            onClick={() => setOption("contacts")}
+          >
             <AddCircle />
           </Button>
           <Button

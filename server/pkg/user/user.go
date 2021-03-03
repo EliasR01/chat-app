@@ -174,39 +174,3 @@ func UploadFile(object string, file []byte) error {
 
 	return nil
 }
-
-//AddContact a new contact
-func AddContact(contactName string, contactEmail string, username string, db *sql.DB) int {
-	sqlUserQuery := `SELECT ID FROM users WHERE username = $1`
-	sqlAddContact := "INSERT INTO CONTACTS(name, email, user_id) VALUES ($1, $2, $3)"
-
-	var userID int
-
-	db.QueryRow(sqlUserQuery, username).Scan(&userID)
-
-	_, err := db.Exec(sqlAddContact, contactName, contactEmail, userID)
-
-	if err != nil {
-		return 1
-	}
-
-	return 0
-
-}
-
-//DeleteContact function
-func DeleteContact(contactName string, username string, db *sql.DB) int {
-	sqlUserQuery := `SELECT ID FROM users WHERE username = $1`
-	sqlDeleteContact := `DELETE FROM contacts WHERE name = $1 AND user_id = $2`
-
-	var userID int
-
-	db.QueryRow(sqlUserQuery, username).Scan(&userID)
-	_, err := db.Exec(sqlDeleteContact, contactName, userID)
-
-	if err != nil {
-		return 2
-	}
-
-	return 0
-}

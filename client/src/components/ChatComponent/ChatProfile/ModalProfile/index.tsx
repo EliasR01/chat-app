@@ -20,7 +20,7 @@ import {
   Backdrop,
   Fade,
 } from "@material-ui/core";
-import { props } from "./types";
+import { Props } from "./types";
 import {
   useBoxStyles,
   useModalStyles,
@@ -31,10 +31,11 @@ import {
 import { Wrapper, InformationForm, ButtonWrapper } from "./styledComponents";
 import { UserContext } from "../../../../context/User/UserContext";
 
-const ModalProfile = ({ open, setOpen, setResponse }: props): ReactElement => {
+const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
   const boxStyles = useBoxStyles();
   const modalStyles = useModalStyles();
-  const paperStyles = usePaperStyles();
+  const paperStyles = usePaperStyles({ form: false });
+  const formPaperStyles = usePaperStyles({ form: true });
   const textFieldStyles = useTextFieldStyles();
   const buttonStyles = useButtonStyles();
   const { state, dispatch } = useContext(UserContext);
@@ -58,7 +59,7 @@ const ModalProfile = ({ open, setOpen, setResponse }: props): ReactElement => {
     ) {
       setError("You must change at least one value!");
     } else {
-      if (password != confirmPassword) {
+      if (password !== confirmPassword) {
         setError("Confirm password does not match");
       } else {
         const data = {
@@ -124,6 +125,7 @@ const ModalProfile = ({ open, setOpen, setResponse }: props): ReactElement => {
               <input
                 type="file"
                 style={{ display: "none" }}
+                accept="image/x-png,image/jpeg,image/jpg"
                 ref={inputFileRef}
                 onChange={(e) => setFile(e)}
               />
@@ -138,7 +140,7 @@ const ModalProfile = ({ open, setOpen, setResponse }: props): ReactElement => {
             </Wrapper>
           </Paper>
           <br />
-          <Paper elevation={2} className={paperStyles.root}>
+          <Paper elevation={2} className={formPaperStyles.root}>
             <Typography component="h5" variant="h5">
               Change your information here
             </Typography>

@@ -14,7 +14,6 @@ const HomeContainer = ({ history }: props): ReactElement => {
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
   const cookie = document.cookie;
-
   useEffect(() => {
     if (cookie) {
       dispatch("RELOAD", { name: "", email: "" }).then((response) => {

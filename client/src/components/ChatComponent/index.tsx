@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import { Paper, LinearProgress, Dialog, DialogTitle } from "@material-ui/core";
+import { Alert } from "@material-ui/lab";
 import Chat from "./Chat";
 import ChatHistory from "./ChatHistory";
 import ChatProfile from "./ChatProfile";
@@ -39,6 +40,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
   const [modalResponse, setModalResponse] = useState<string | boolean>(false);
   const [showPicker, setShowPicker] = useState<boolean>(false);
   const [menuOption, setMenuOption] = useState<string>("");
+  const [error, setError] = useState<string | boolean>(false);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
   const { state: chatState, dispatch: chatDispatch } = useContext(ChatContext);
   const chatRef = useRef<HTMLDivElement>(null);
@@ -46,10 +48,14 @@ const ChatComponent = ({ history }: props): ReactElement => {
 
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
-    await chatDispatch("LOGIN", { username: userState.username, messages: {} })
+    await chatDispatch("LOGIN", {
+      username: userState.username,
+      messages: {},
+      conversations: {},
+    })
       .then((response) => {
         setLoading(false);
-        if (!response) {
+        if (response.code !== 1) {
           closeConnection();
           history.goBack();
         }
@@ -122,7 +128,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
           (chatState.conversations[index].creator === userState.username ||
             chatState.conversations[index].member === userState.username)
         ) {
-          const messageIdx = chatState.conversations[index].lastMessage;
+          const messageIdx = chatState.conversations[index].lastMessage.String;
           const conversation: Conversation = {
             createdAt: chatState.conversations[index].createdAt,
             creator: chatState.conversations[index].creator,
@@ -132,8 +138,10 @@ const ChatComponent = ({ history }: props): ReactElement => {
             sts: chatState.conversations[index].sts,
             updatedAt: chatState.conversations[index].updatedAt,
             lastMessage:
-              chatState.messages[messageIdx].sts === "READED" ||
-              chatState.messages[messageIdx].sts === "SENT"
+              messageIdx.length > 1 &&
+              chatState.messages[messageIdx] &&
+              (chatState.messages[messageIdx].sts === "READED" ||
+                chatState.messages[messageIdx].sts === "SENT")
                 ? chatState.messages[messageIdx].body
                 : "",
           };
@@ -143,14 +151,13 @@ const ChatComponent = ({ history }: props): ReactElement => {
       setConversations(convs);
     } else if (option === "history") {
       const convs = [];
-
       for (const index in chatState.conversations) {
         if (
           chatState.conversations[index].sts === "CREATED" &&
           (chatState.conversations[index].creator === userState.username ||
             chatState.conversations[index].member === userState.username)
         ) {
-          const messageIdx = chatState.conversations[index].lastMessage;
+          const messageIdx = chatState.conversations[index].lastMessage.String;
           const conversation: Conversation = {
             createdAt: chatState.conversations[index].createdAt,
             creator: chatState.conversations[index].creator,
@@ -160,8 +167,10 @@ const ChatComponent = ({ history }: props): ReactElement => {
             sts: chatState.conversations[index].sts,
             updatedAt: chatState.conversations[index].updatedAt,
             lastMessage:
-              chatState.messages[messageIdx].sts === "READED" ||
-              chatState.messages[messageIdx].sts === "SENT"
+              messageIdx.length > 1 &&
+              chatState.messages[messageIdx] &&
+              (chatState.messages[messageIdx].sts === "READED" ||
+                chatState.messages[messageIdx].sts === "SENT")
                 ? chatState.messages[messageIdx].body
                 : "",
           };
@@ -175,7 +184,8 @@ const ChatComponent = ({ history }: props): ReactElement => {
 
   //Calls every time that messages are changed, or the user selects other conversation.
   //It changes the messages variable and set the messages that corresponds to the selected conversation
-  useMemo(() => {
+  useEffect(() => {
+    console.log("Triggering...");
     const filteredMessages = [];
     for (const index in chatState.messages) {
       if (
@@ -202,7 +212,6 @@ const ChatComponent = ({ history }: props): ReactElement => {
       a.createdAt && b.createdAt ? (a.createdAt > b.createdAt ? 1 : -1) : 0
     );
     setMessages(filteredMessages);
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatState.messages, currConv]);
 
@@ -213,7 +222,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
       behavior: "smooth",
       top: chatRef.current?.scrollHeight,
     });
-  }, [messages]);
+  }, [messages, currConv]);
 
   //Function that sends the message
   const send = (): void => {
@@ -230,8 +239,15 @@ const ChatComponent = ({ history }: props): ReactElement => {
       first: socketMessage,
     };
 
-    chatDispatch("SEND", { messages: uniqueMessage });
-    setMessage("");
+    chatDispatch("SEND", { messages: uniqueMessage, conversations: {} }).then(
+      (res) => {
+        if (res.code === 1) {
+          setMessage("");
+        } else {
+          //Error
+        }
+      }
+    );
   };
 
   //Function that changes the searchValue state
@@ -292,13 +308,47 @@ const ChatComponent = ({ history }: props): ReactElement => {
       people: [person],
       username: userState.username,
       messages: {},
+      conversations: {},
     }).then((response) => {
-      if (response) {
+      if (response.code === 1) {
         //Do the response
-        console.log("Added successfully!");
+        console.log(response.data);
       } else {
         //Do the error
-        console.log("Couldn't be added");
+        console.log(response.data);
+      }
+    });
+  };
+
+  //RemoveContact function, detaches user's contact
+  const removeContact = (contact: Contact) => {
+    chatDispatch("REMOVE_CONTACT", {
+      contacts: [contact],
+      messages: {},
+      conversations: {},
+    }).then((res) => {
+      if (res.code === 1) {
+        //Not error
+      } else {
+        //Error
+      }
+    });
+  };
+
+  //CreateConv function, creates a new conversation
+  const createConv = (contactUsername: string) => {
+    chatDispatch("CREATE_CONV", {
+      messages: {},
+      conversations: {},
+      username: contactUsername,
+      creator: userState.username,
+    }).then((res) => {
+      if (res.code === 1) {
+        setOption("history");
+        setCurrChat(contactUsername);
+        setCurrConv(res.data);
+      } else {
+        //Error
       }
     });
   };
@@ -323,6 +373,8 @@ const ChatComponent = ({ history }: props): ReactElement => {
         anchorOptions={anchorOptions}
         menuOption={menuOption}
         addContact={addContact}
+        removeContact={removeContact}
+        createConv={createConv}
       />
       <Chat
         name={user?.name}
@@ -353,6 +405,11 @@ const ChatComponent = ({ history }: props): ReactElement => {
       >
         <DialogTitle>{modalResponse}</DialogTitle>
       </Dialog>
+      {error ? (
+        <Alert severity="error" onClose={() => setError(false)}>
+          {error}
+        </Alert>
+      ) : null}
     </Paper>
   );
 

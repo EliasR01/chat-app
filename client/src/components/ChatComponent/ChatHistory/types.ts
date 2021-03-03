@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { Contact } from "../types";
 
 export type props = {
   setOption: Dispatch<SetStateAction<string>>;
@@ -21,6 +22,8 @@ export type props = {
   ) => void;
   menuOption: string;
   addContact: (person: User) => void;
+  removeContact: (contact: Contact) => void;
+  createConv: (contactUsername: string) => void;
 };
 
 export type conversation = {

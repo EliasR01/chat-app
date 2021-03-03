@@ -90,8 +90,8 @@ const Chat = ({
         </HeaderWrapper>
       </Box>
       <Box className={bodyBoxStyles.root}>
-        <List className={listStyles.root}>
-          <ChatWrapper ref={chatRef}>
+        <ChatWrapper ref={chatRef}>
+          <List className={listStyles.root}>
             {messages && messages.length > 0
               ? messages.map(
                   (message: Message): ReactNode => {
@@ -126,12 +126,14 @@ const Chat = ({
                       );
 
                       return messageJsx;
+                    } else {
+                      return null;
                     }
                   }
                 )
               : null}
-          </ChatWrapper>
-        </List>
+          </List>
+        </ChatWrapper>
       </Box>
       {picker ? (
         <EmojiDialog>

@@ -24,7 +24,10 @@ export type Conversation = {
   updatedAt: string;
   deletedAt: string;
   sts: string;
-  lastMessage: string;
+  lastMessage: {
+    String: string;
+    Valid: boolean;
+  };
 };
 
 export type Contact = {
@@ -41,7 +44,7 @@ export type State = {
   username?: string;
   messages: MessageMap;
   attachments?: Attachment[];
-  conversations?: ConversationMap;
+  conversations: ConversationMap;
   contacts?: Contact[];
   people?: User[];
 };
@@ -56,7 +59,7 @@ type ConversationMap = {
 
 export type Action = {
   type: string;
-  payload: State;
+  payload: Payload;
   userId?: number;
 };
 
@@ -72,4 +75,19 @@ export type User = {
   address?: string;
   phone?: string;
   username?: string;
+};
+
+export type Payload = {
+  username?: string;
+  creator?: string;
+  messages: MessageMap;
+  attachments?: Attachment[];
+  conversations: ConversationMap;
+  contacts?: Contact[];
+  people?: User[];
+};
+
+export type Response = {
+  data: string;
+  code: number;
 };

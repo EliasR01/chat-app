@@ -12,7 +12,7 @@ export const userMiddleware = async (
       let result = false;
       await axios
         .get(
-          `${process.env.BACKEND_ENDPOINT}auth?type=${action}&email=${payload.email}&password=${payload.password}`,
+          `${process.env.REACT_APP_BACKEND_ENDPOINT}auth?type=${action}&email=${payload.email}&password=${payload.password}`,
           { withCredentials: true }
         )
         .then((response) => {
@@ -31,7 +31,7 @@ export const userMiddleware = async (
     case "REGISTER": {
       let result = false;
       await axios
-        .post(`${process.env.BACKEND_ENDPOINT}register`, payload)
+        .post(`${process.env.REACT_APP_BACKEND_ENDPOINT}register`, payload)
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: action });
@@ -48,7 +48,7 @@ export const userMiddleware = async (
     case "RELOAD": {
       let result = false;
       await axios
-        .get(`${process.env.BACKEND_ENDPOINT}auth?type=${action}`, {
+        .get(`${process.env.REACT_APP_BACKEND_ENDPOINT}auth?type=${action}`, {
           withCredentials: true,
         })
         .then((response) => {
@@ -65,7 +65,7 @@ export const userMiddleware = async (
     case "LOGOUT": {
       let result = false;
       await axios
-        .get(`${process.env.BACKEND_ENDPOINT}logout`)
+        .get(`${process.env.REACT_APP_BACKEND_ENDPOINT}logout`)
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: action });
@@ -77,7 +77,7 @@ export const userMiddleware = async (
     case "UPDATE": {
       let result = "";
       await axios
-        .put(`${process.env.BACKEND_ENDPOINT}update`, payload)
+        .put(`${process.env.REACT_APP_BACKEND_ENDPOINT}update`, payload)
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: action });

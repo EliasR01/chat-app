@@ -8,7 +8,8 @@ import (
 	"sync"
 )
 
-type contact struct {
+//Contact struct
+type Contact struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
@@ -20,18 +21,19 @@ type contact struct {
 
 //ContactReq struct, this is the contact information sent to the addContactHandler func
 type ContactReq struct {
-	Contact  []person `json:"people"`
-	Username string   `json:"username"`
+	Person   []person  `json:"people"`
+	Username string    `json:"username"`
+	Contact  []Contact `json:"contact"`
 }
 
 type conversation struct {
 	CreatedAt   string         `json:"createdAt"`
 	UpdatedAt   string         `json:"updatedAt"`
-	DeletedAt   sql.NullString `json:"deletedAt"`
+	DeletedAt   sql.NullTime   `json:"deletedAt"`
 	STS         string         `json:"sts"`
 	Creator     string         `json:"creator"`
 	Member      string         `json:"member"`
-	LastMessage string         `json:"lastMessage"`
+	LastMessage sql.NullString `json:"lastMessage"`
 }
 
 type message struct {
@@ -46,7 +48,7 @@ type message struct {
 }
 
 type userData struct {
-	Contacts      []contact               `json:"contacts"`
+	Contacts      []Contact               `json:"contacts"`
 	Conversations map[string]conversation `json:"conversations"`
 	Messages      map[string]message      `json:"messages"`
 	People        []person                `json:"people"`
@@ -67,8 +69,8 @@ type person struct {
 	Username  string `json:"username"`
 }
 
-var contactData contact
-var contacts []contact
+var contactData Contact
+var contacts []Contact
 var conversationData conversation
 var conversations map[string]conversation
 var messageData message
@@ -110,7 +112,7 @@ func GetUserInfo(db *sql.DB, w http.ResponseWriter, r *http.Request, data string
 }
 
 func clearVariables() {
-	contactData = contact{}
+	contactData = Contact{}
 	conversationData = conversation{}
 	messageData = message{}
 	attachmentData = attachment{}
@@ -169,7 +171,7 @@ func fetchPeople(db *sql.DB) {
 
 func fetchConversations(db *sql.DB, data string) {
 	sqlConversation := `SELECT ID, created_at, updated_at, deleted_at, sts, creator, member, last_message FROM conversation WHERE creator = $1 OR member = $1`
-	sqlMessages := `SELECT id, message, created_at, updated_at, deleted_at, sender, conversation_id, sts, message_type FROM messages WHERE conversation_id = $1`
+	sqlMessages := `SELECT id, message, created_at, updated_at, deleted_at, sender, conversation_id, sts, message_type FROM messages WHERE conversation_id = $1 AND sts != 'DELETED'`
 	sqlAttachments := `SELECT id, messages_id, file_url FROM attachments WHERE messages_id = $1`
 	convRes, convErr := db.Query(sqlConversation, data)
 
@@ -185,7 +187,6 @@ func fetchConversations(db *sql.DB, data string) {
 	for convRes.Next() {
 		var conversationID string
 		err := convRes.Scan(&conversationID, &conversationData.CreatedAt, &conversationData.UpdatedAt, &conversationData.DeletedAt, &conversationData.STS, &conversationData.Creator, &conversationData.Member, &conversationData.LastMessage)
-
 		if err != nil {
 			log.Printf("Error scaning conversation rows: %s", err)
 		}
@@ -237,28 +238,74 @@ func fetchConversations(db *sql.DB, data string) {
 }
 
 //AddContact function, add a contact to user
-func AddContact(db *sql.DB, data []person, username string, w http.ResponseWriter, r *http.Request) int {
-	sqlAddContact := `INSERT INTO CONTACTS(name, email, user_id) VALUES ($1, $2, $3) RETURNING ID`
+func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
+	sqlAddContact := `INSERT INTO CONTACTS(id, name, email, user_id) VALUES (uuid_generate_v4() ,$1, $2, $3)`
 	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	sqlUser := `SELECT id FROM users WHERE username = $1`
 
-	var contactID string
-	var resContact contact
+	var resContacts []Contact
+	var contactData Contact
 	var err error
 	var userID int
-	log.Printf("Username: %s", username)
 	err = db.QueryRow(sqlUser, username).Scan(&userID)
-	log.Printf("User ID: %v", userID)
-	err = db.QueryRow(sqlAddContact, data[0].Name, data[0].Email, userID).Scan(&contactID)
-	log.Printf("ContactID: %s", contactID)
-	err = db.QueryRow(sqlContacts, contactID).Scan(&resContact.ID, &resContact.Name, &resContact.Email, &resContact.UserID, &resContact.Username, &resContact.Address, &resContact.Phone)
 
 	if err != nil {
-
-		log.Printf("Error retrieving the contact information: %s", err)
-		return 1
+		log.Printf("Error querying user: %s", err)
+		return 1, nil
 	}
 
-	return 0
+	_, err = db.Exec(sqlAddContact, data[0].Name, data[0].Email, userID)
+
+	if err != nil {
+		log.Printf("Error inserting the contact: %s", err)
+		return 1, nil
+	}
+
+	res, err := db.Query(sqlContacts, userID)
+
+	defer res.Close()
+	for res.Next() {
+		res.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID, &contactData.Username, &contactData.Address, &contactData.Phone)
+		resContacts = append(resContacts, contactData)
+	}
+
+	if err != nil {
+		log.Printf("Error retrieving the contact information: %s", err)
+		return 1, nil
+	}
+
+	return 0, resContacts
+
+}
+
+//RemoveContact function, detaches contact from user
+func RemoveContact(db *sql.DB, data Contact) (int, []Contact) {
+	sqlRemoveContact := `DELETE FROM contact WHERE id = $1`
+	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
+
+	var contactData Contact
+	var resContacts []Contact
+
+	_, err := db.Exec(sqlRemoveContact, data.ID)
+
+	if err != nil {
+		log.Printf("Error deleting contact: %s", err)
+		return 1, nil
+	}
+
+	res, err := db.Query(sqlContacts, data.UserID)
+
+	if err != nil {
+		log.Printf("Error querying contacts: %s", err)
+		return 1, nil
+	}
+
+	defer res.Close()
+	for res.Next() {
+		res.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID, &contactData.Username, &contactData.Address, &contactData.Phone)
+		resContacts = append(resContacts, contactData)
+	}
+
+	return 0, resContacts
 
 }

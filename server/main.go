@@ -62,8 +62,9 @@ func main() {
 	mux.HandleFunc("/logout", logoutHandler)
 	mux.HandleFunc("/update", userHandler)
 	mux.HandleFunc("/delete", userHandler)
-	mux.HandleFunc("/contact", contactHandler)
 	mux.HandleFunc("/add_contact", addContactHandler)
+	mux.HandleFunc("/rem_contact", removeContactHandler)
+	mux.HandleFunc("/create_conv", convHandler)
 
 	server := http.Server{Addr: ":4000", Handler: mux}
 	log.Println("Server started on port 4000")
@@ -174,44 +175,6 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func contactHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
-	w.Header().Add("Access-Control-Allow-Methods", "PUT")
-	w.Header().Add("Access-Control-Allow-Methods", "OPTIONS")
-	w.Header().Add("Access-Control-Allow-Headers", "content-type")
-	w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-	bodyBytes, err := ioutil.ReadAll(r.Body)
-
-	if err != nil {
-		log.Printf("Error: %s", err)
-	}
-
-	var contactData user.UpdateContact
-
-	var errorCode int
-
-	json.Unmarshal(bodyBytes, &contactData)
-
-	if contactData.Op == "add" {
-		errorCode = user.AddContact(contactData.ContactName, contactData.ContactEmail, contactData.Username, db)
-	} else if contactData.Op == "delete" {
-		errorCode = user.DeleteContact(contactData.ContactName, contactData.Username, db)
-	}
-
-	if errorCode == 0 {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("Contact created or deleted successfully"))
-	} else if errorCode == 1 {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("There was an error adding the contact"))
-	} else if errorCode == 2 {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("There was an error deleting the contact"))
-	}
-
-}
-
 func addContactHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
 	w.Header().Add("Access-Control-Allow-Methods", "POST")
@@ -220,22 +183,101 @@ func addContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data chat.ContactReq
 
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		err = json.NewDecoder(r.Body).Decode(&data)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Error decoding the response body"))
 			log.Printf("%s", err)
 		} else {
-			errorCode := chat.AddContact(db, data.Contact, data.Username, w, r)
+			errorCode, contact := chat.AddContact(db, data.Person, data.Username)
 
 			if errorCode == 1 {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte("Error adding contact"))
 			} else if errorCode == 0 {
-				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("Contact added successfully"))
+
+				data, err := json.Marshal(contact)
+
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("Error transforming returning data in json"))
+				} else {
+					w.WriteHeader(http.StatusOK)
+					w.Write(data)
+				}
 			}
 		}
 	}
+}
+
+func removeContactHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Add("Access-Control-Allow-Methods", "DELETE")
+	w.Header().Add("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	var data chat.ContactReq
+	json.NewDecoder(r.Body).Decode(&data)
+
+	errorCode, contacts := chat.RemoveContact(db, data.Contact[0])
+
+	if errorCode == 1 {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("There was an error deleting the contact"))
+	} else {
+
+		res, err := json.Marshal(contacts)
+
+		if err != nil {
+			log.Printf("Error marshalling response: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("There was an error"))
+		} else {
+			w.WriteHeader(http.StatusOK)
+			w.Write(res)
+		}
+
+	}
+
+}
+
+func convHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
+	w.Header().Add("Access-Control-Allow-Methods", "POST")
+	w.Header().Add("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	var data chat.ConvReq
+	_ = json.NewDecoder(r.Body).Decode(&data)
+	log.Println(data)
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+	} else if r.Method == http.MethodPost {
+		if err != nil {
+			log.Printf("Error decoding data: %s", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("There was an error"))
+		} else {
+			errorCode, chatData := chat.CreateConv(data.Creator, data.Member, db)
+
+			if errorCode == 1 {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("There was an error"))
+			} else {
+
+				returnData, err := json.Marshal(chatData)
+
+				if err != nil {
+					log.Printf("Error coding data: %s", err)
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("there was an error"))
+				} else {
+					w.WriteHeader(http.StatusOK)
+					w.Write(returnData)
+				}
+			}
+		}
+	}
+
 }
