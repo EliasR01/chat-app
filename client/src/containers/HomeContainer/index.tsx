@@ -25,14 +25,26 @@ const HomeContainer = ({ history }: props): ReactElement => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signIn = () => {
+  const signIn = (email: string, password: string) => {
     setError(false);
-    if (loginData.email === "" || loginData.password === "") {
+    if (
+      (loginData.email === "" || loginData.password === "") &&
+      (email === "" || password === "")
+    ) {
       setError("Must fill the fields!");
     } else {
       setLoading(true);
       try {
-        dispatch("LOGIN", loginData).then((response) => {
+        const data =
+          loginData.email !== ""
+            ? loginData
+            : {
+                email,
+                password,
+                name: "",
+              };
+
+        dispatch("LOGIN", data).then((response) => {
           setLoading(false);
           if (response === true) {
             history.push("/chat");

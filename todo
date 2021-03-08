@@ -3,3 +3,8 @@ Implement user calls and video calls
 Implement contact searching and user searching for adding contacts
 Implement message deletion
 
+Fix sending message bug, just after it creates the conversation
+Fix adding contact bug just after the user registers
+Fix adding contacts bug when there is more than 1
+Fix user profile bug (lack of information) just after the user registers
+Fix that conversation's lastMessage is not updating when a message is sent

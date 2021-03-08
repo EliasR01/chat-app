@@ -242,7 +242,7 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 	sqlAddContact := `INSERT INTO CONTACTS(id, name, email, user_id) VALUES (uuid_generate_v4() ,$1, $2, $3)`
 	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	sqlUser := `SELECT id FROM users WHERE username = $1`
-
+	log.Println(username)
 	var resContacts []Contact
 	var contactData Contact
 	var err error

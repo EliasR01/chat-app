@@ -1,4 +1,4 @@
-import { State, Action, Message } from "./types";
+import { State, Action } from "./types";
 import { sendMsg } from "../../websocket";
 
 export const chatReducer = (state: State, action: Action): State => {
@@ -17,7 +17,13 @@ export const chatReducer = (state: State, action: Action): State => {
         ID = index;
       }
 
-      const receivedMessage: Message = data.messages[ID];
+      const receivedMessage = data.messages[ID];
+      const convId = receivedMessage.conversationId!;
+
+      state.conversations[convId].lastMessage = {
+        String: ID,
+        Valid: true,
+      };
 
       return {
         ...state,

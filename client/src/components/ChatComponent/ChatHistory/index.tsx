@@ -106,6 +106,7 @@ const ChatHistory = ({
       jsx =
         people && people.length > 0
           ? people.map((person) => {
+              console.log(person);
               return (
                 <ConvWrapper key={person.id}>
                   <Menu

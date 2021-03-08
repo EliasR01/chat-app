@@ -45,7 +45,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   const { state: chatState, dispatch: chatDispatch } = useContext(ChatContext);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  console.log(chatState);
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
     await chatDispatch("LOGIN", {
@@ -97,7 +96,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
         conv.member.includes(searchValue)
       );
       setConversations(convs);
-    } else if (option === "people") {
+    } else if (option === "contacts") {
       const cont = contacts?.filter(
         (contact) =>
           contact.name.includes(searchValue) ||
@@ -105,7 +104,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
       );
 
       setContacts(cont);
-    } else if (option === "contacts") {
+    } else if (option === "people") {
       const peop = people?.filter(
         (person) =>
           person.name.includes(searchValue) ||
@@ -185,7 +184,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   //Calls every time that messages are changed, or the user selects other conversation.
   //It changes the messages variable and set the messages that corresponds to the selected conversation
   useEffect(() => {
-    console.log("Triggering...");
     const filteredMessages = [];
     for (const index in chatState.messages) {
       if (
