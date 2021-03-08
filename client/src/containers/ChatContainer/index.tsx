@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useEffect, useState } from "react";
+import { ReactElement, useContext, useEffect, useState } from "react";
 import ChatComponent from "../../components/ChatComponent";
 import { LinearProgress } from "@material-ui/core";
 import { ChatProvider } from "../../context/Chat/ChatContext";

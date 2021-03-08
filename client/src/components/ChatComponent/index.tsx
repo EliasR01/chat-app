@@ -1,4 +1,4 @@
-import React, {
+import {
   ReactElement,
   useContext,
   useState,
@@ -16,10 +16,10 @@ import { usePaperStyles } from "./styles";
 import { UserContext } from "../../context/User/UserContext";
 import { ChatContext } from "../../context/Chat/ChatContext";
 import { closeConnection } from "../../websocket/index";
-import { props, Conversation, Message, Contact, User } from "./types";
+import { Props, Conversation, Message, Contact, User } from "./types";
 import { EmojiData } from "emoji-mart";
 
-const ChatComponent = ({ history }: props): ReactElement => {
+const ChatComponent = ({ history }: Props): ReactElement => {
   const paperStyles = usePaperStyles();
   const [message, setMessage] = useState<string>("");
   const [option, setOption] = useState<string>("history");
@@ -45,7 +45,7 @@ const ChatComponent = ({ history }: props): ReactElement => {
   const { state: chatState, dispatch: chatDispatch } = useContext(ChatContext);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
+  console.log(chatState);
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
     await chatDispatch("LOGIN", {

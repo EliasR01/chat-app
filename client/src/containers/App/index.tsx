@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import { ReactElement } from "react";
 import HomeContainer from "../HomeContainer/index";
 import ChatContainer from "../ChatContainer/index";
 import { ThemeProvider } from "@material-ui/core";

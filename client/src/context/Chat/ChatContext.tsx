@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   ReactElement,
   useEffect,
@@ -32,6 +32,7 @@ export const ChatContext = createContext<{
 export const ChatProvider = ({ children }: Children): ReactElement => {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { state: userState } = useContext(UserContext);
+
   //This is a hook that will handle all the dispatch operations needed for the ChatComponent functionality
   //including sending messages, receiving, querying and mutating messages, all kind of operations with the API.
   const useMiddleware = (action: string, data: Payload): Promise<Response> => {
@@ -41,24 +42,28 @@ export const ChatProvider = ({ children }: Children): ReactElement => {
   //This function executed once this component is loaded,
   //connects the websocket to the server and listens all the messages that are sent by the server
   useEffect(() => {
-    const messageHandler = (msg: MessageEvent): void => {
+    const useMessageHandler = (msg: MessageEvent): void => {
       const data = JSON.parse(msg.data);
       let key = "";
       for (const index in data) {
         key = index;
       }
-
       if (typeof data !== "string") {
         if (data[key] && data[key].type === 1) {
           const payloadState: State = {
             messages: data,
             conversations: state.conversations,
           };
+          // useMiddleware("RECEIVE", payloadState);
           dispatch({ type: "RECEIVE", payload: payloadState });
+          console.log(state);
         }
       }
     };
-    connect({ messageHandler: messageHandler, username: userState.username });
+    connect({
+      messageHandler: useMessageHandler,
+      username: userState.username,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

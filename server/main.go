@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("Error stablishing connection to the database: %s", err)
 	}
 	os.Setenv("ACCESS_SECRET", "s0m3s4p3rsawdas56456cr3tt0k3n6564s")
-	os.Setenv("ORIGIN", "http://localhost:8000")
+	os.Setenv("ORIGIN", "http://localhost:3000")
 
 	defer db.Close()
 	pool := websocket.NewPool()

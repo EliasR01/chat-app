@@ -1,6 +1,6 @@
 import { History } from "history";
 
-export type props = {
+export type Props = {
   history: History;
 };
 

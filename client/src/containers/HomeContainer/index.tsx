@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useState, useEffect } from "react";
+import { ReactElement, useContext, useState, useEffect } from "react";
 import HomeComponent from "../../components/HomeComponent";
 import { UserContext } from "../../context/User/UserContext";
 import { loginData, props } from "./types";

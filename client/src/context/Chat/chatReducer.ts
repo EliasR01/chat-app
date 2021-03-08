@@ -1,4 +1,4 @@
-import { State, Action } from "./types";
+import { State, Action, Message } from "./types";
 import { sendMsg } from "../../websocket";
 
 export const chatReducer = (state: State, action: Action): State => {
@@ -11,17 +11,32 @@ export const chatReducer = (state: State, action: Action): State => {
     }
     case "RECEIVE": {
       const data = action.payload;
-      const message = data.messages;
       let ID = "";
 
-      for (const index in message) {
+      for (const index in data.messages) {
         ID = index;
       }
-      const receivedMessage = message[ID];
 
-      state.messages[ID] = receivedMessage;
-      console.log(state);
-      return state;
+      const receivedMessage: Message = data.messages[ID];
+
+      return {
+        ...state,
+        messages: { ...state.messages, [ID]: receivedMessage },
+      };
+    }
+    case "CREATE_CONV": {
+      const data = action.payload;
+      let convId = "";
+
+      for (const index in data.conversations) {
+        convId = index;
+      }
+
+      const newConv = data.conversations[convId];
+      return {
+        ...state,
+        conversations: { ...state.conversations, [convId]: newConv },
+      };
     }
     case "LOGIN": {
       const data = action.payload;
@@ -34,18 +49,6 @@ export const chatReducer = (state: State, action: Action): State => {
     case "REMOVE_CONTACT": {
       const data = action.payload;
       return { ...state, contacts: data.contacts };
-    }
-    case "CREATE_CONV": {
-      const data = action.payload;
-      let convId = "";
-      for (const index in data.conversations) {
-        convId = index;
-      }
-
-      const newConv = data.conversations[convId];
-
-      state.conversations[convId] = newConv;
-      return state;
     }
     default:
       return state;
