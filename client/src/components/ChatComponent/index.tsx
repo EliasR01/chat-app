@@ -1,11 +1,4 @@
-import {
-  ReactElement,
-  useContext,
-  useState,
-  useRef,
-  useEffect,
-  useMemo,
-} from "react";
+import { ReactElement, useContext, useState, useRef, useEffect } from "react";
 import { Paper, LinearProgress, Dialog, DialogTitle } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import Chat from "./Chat";
@@ -72,7 +65,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   }, []);
 
   //This updates the contacts and people
-  useMemo(() => {
+  useEffect(() => {
     const allPeople = chatState.people?.filter(
       (person) => person.name !== userState.name
     );
@@ -80,7 +73,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     setContacts(chatState.contacts);
   }, [chatState.people, chatState.contacts, userState.name]);
   //Every time that a new conversation is selected, this   function is executed.
-  useMemo(() => {
+  useEffect(() => {
     const currentUser = currChat
       ? chatState.contacts?.filter((contact) => contact.username === currChat)
       : null;
@@ -92,8 +85,8 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   //It changes the values depending on the selected option, to filter the conversations or de contacts according to the value to search
   useEffect(() => {
     if (option === "history" || option === "archived") {
-      const convs = conversations?.filter((conv) =>
-        conv.member.includes(searchValue)
+      const convs = conversations?.filter(
+        (conv) => conv.member.includes(searchValue) && conv.sts !== "DELETED"
       );
       setConversations(convs);
     } else if (option === "contacts") {
@@ -117,7 +110,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   }, [searchValue]);
 
   //This function executes when changing the current option to see the chats, contacts, people or archived chats.
-  useMemo(() => {
+  useEffect(() => {
     if (option === "archived") {
       const convs = [];
 
@@ -125,7 +118,8 @@ const ChatComponent = ({ history }: Props): ReactElement => {
         if (
           chatState.conversations[index].sts === "ARCHIVED" &&
           (chatState.conversations[index].creator === userState.username ||
-            chatState.conversations[index].member === userState.username)
+            chatState.conversations[index].member === userState.username) &&
+          chatState.conversations[index].sts !== "DELETED"
         ) {
           const messageIdx = chatState.conversations[index].lastMessage.String;
           const conversation: Conversation = {
@@ -154,7 +148,8 @@ const ChatComponent = ({ history }: Props): ReactElement => {
         if (
           chatState.conversations[index].sts === "CREATED" &&
           (chatState.conversations[index].creator === userState.username ||
-            chatState.conversations[index].member === userState.username)
+            chatState.conversations[index].member === userState.username) &&
+          chatState.conversations[index].sts !== "DELETED"
         ) {
           const messageIdx = chatState.conversations[index].lastMessage.String;
           const conversation: Conversation = {
@@ -277,7 +272,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
           username: currUser[0].username,
         }
       : null;
-
   //Function that triggers the logout reducer
   const logout = (): void => {
     userDispatch("LOGOUT", { name: "", email: "" }).then((response) => {

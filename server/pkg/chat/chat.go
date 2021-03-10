@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sync"
+	"time"
 )
 
 //Contact struct
@@ -141,7 +142,7 @@ func fetchContacts(db *sql.DB, data string) {
 		userRes.Scan(&userID)
 	}
 
-	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
+	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, c.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	var rows = 0
 	contRes, contErr := db.Query(sqlContacts, userID)
 
@@ -243,10 +244,9 @@ func fetchConversations(db *sql.DB, data string) {
 
 //AddContact function, add a contact to user
 func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
-	sqlAddContact := `INSERT INTO CONTACTS(id, name, email, user_id) VALUES (uuid_generate_v4() ,$1, $2, $3)`
-	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
+	sqlAddContact := `INSERT INTO CONTACTS(id, name, email, user_id, username) VALUES (uuid_generate_v4() ,$1, $2, $3, $4)`
+	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, c.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	sqlUser := `SELECT id FROM users WHERE username = $1`
-	log.Println(username)
 	var resContacts []Contact
 	var contactData Contact
 	var err error
@@ -258,7 +258,7 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 		return 1, nil
 	}
 
-	_, err = db.Exec(sqlAddContact, data[0].Name, data[0].Email, userID)
+	_, err = db.Exec(sqlAddContact, data[0].Name, data[0].Email, userID, data[0].Username)
 
 	if err != nil {
 		log.Printf("Error inserting the contact: %s", err)
@@ -284,18 +284,32 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 
 //RemoveContact function, detaches contact from user
 func RemoveContact(db *sql.DB, id string) (int, string) {
-	sqlRemoveContact := `DELETE FROM contacts WHERE id = $1`
+	sqlRemoveContact := `DELETE FROM contacts WHERE id = $1 returning USERNAME`
+	sqlUpdateConversation := `UPDATE conversation set sts = 'DELETED', deleted_at = $2 where creator = $1 or member = $1 RETURNING ID`
+	sqlUpdateMessages := `UPDATE messages SET sts = 'DELETED' WHERE conversation_id = $1`
+	// sqlRemoveMessages := `DELETE FROM messages WHERE `
 
-	_, err := db.Exec(sqlRemoveContact, id)
+	var contactUsername string
+	var convID string
+
+	err := db.QueryRow(sqlRemoveContact, id).Scan(&contactUsername)
 
 	if err != nil {
 		log.Printf("Error deleting contact: %s", err)
 		return 1, ""
 	}
 
+	err = db.QueryRow(sqlUpdateConversation, contactUsername, time.Now()).Scan(&convID)
+
 	if err != nil {
-		log.Printf("Error querying contacts: %s", err)
+		log.Printf("Error updating conversation: %s", err)
 		return 1, ""
+	}
+
+	_, err = db.Exec(sqlUpdateMessages, convID)
+
+	if err != nil {
+		log.Printf("Error updating messages: %s", err)
 	}
 
 	return 0, id

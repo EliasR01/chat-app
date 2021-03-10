@@ -54,12 +54,27 @@ export const chatReducer = (state: State, action: Action): State => {
     }
     case "REMOVE_CONTACT": {
       const data = action.payload;
+      let username = "";
+      const newContacts = state.contacts?.filter((contact) => {
+        if (contact.id === data.contactId) username = contact.username;
 
-      const newContacts = state.contacts?.filter(
-        (contact) => contact.id !== data.contactId
-      );
+        return contact.id !== data.contactId;
+      });
 
-      return { ...state, contacts: newContacts };
+      let convID = "";
+
+      for (const index in state.conversations) {
+        if (
+          state.conversations[index].member === username ||
+          state.conversations[index].creator === username
+        ) {
+          convID = index;
+        }
+      }
+
+      const newConvs = state.conversations;
+      newConvs[convID].sts = "DELETED";
+      return { ...state, contacts: newContacts, conversations: newConvs };
     }
     default:
       return state;

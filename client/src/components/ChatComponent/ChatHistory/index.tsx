@@ -33,7 +33,12 @@ import {
   useButtonStyles,
   useIconStyles,
 } from "./styles";
-import { IconsWrapper, OptionsWrapper, ConvWrapper } from "./styledComponents";
+import {
+  IconsWrapper,
+  OptionsWrapper,
+  ConvWrapper,
+  Text,
+} from "./styledComponents";
 import { props } from "./types";
 import { UserContext } from "../../../context/User/UserContext";
 
@@ -106,7 +111,6 @@ const ChatHistory = ({
       jsx =
         people && people.length > 0
           ? people.map((person) => {
-              console.log(person);
               return (
                 <ConvWrapper key={person.id}>
                   <Menu
@@ -118,8 +122,8 @@ const ChatHistory = ({
                   >
                     <MenuItem
                       onClick={() => {
-                        anchorOptions(null, "");
                         addContact(person);
+                        anchorOptions(null, "");
                       }}
                     >
                       Add Contact
@@ -161,16 +165,16 @@ const ChatHistory = ({
                   >
                     <MenuItem
                       onClick={() => {
-                        anchorOptions(null, "");
                         createConv(contact.username);
+                        anchorOptions(null, "");
                       }}
                     >
                       Text a message
                     </MenuItem>
                     <MenuItem
                       onClick={() => {
-                        anchorOptions(null, "");
                         removeContact(contact);
+                        anchorOptions(null, "");
                       }}
                     >
                       Remove contact
@@ -295,6 +299,7 @@ const ChatHistory = ({
         </IconsWrapper>
       </Box>
       <Box>
+        <Text>{option.toUpperCase()}</Text>
         <List>{jsx}</List>
       </Box>
     </Container>
