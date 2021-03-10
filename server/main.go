@@ -217,27 +217,39 @@ func removeContactHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	var data chat.ContactReq
-	json.NewDecoder(r.Body).Decode(&data)
+	respBody, err := ioutil.ReadAll(r.Body)
 
-	errorCode, contacts := chat.RemoveContact(db, data.Contact[0])
+	var data chat.DelContactReq
 
-	if errorCode == 1 {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("There was an error deleting the contact"))
-	} else {
-
-		res, err := json.Marshal(contacts)
-
+	if r.Method == http.MethodDelete {
 		if err != nil {
-			log.Printf("Error marshalling response: %s", err)
+			log.Printf("Error reading delete body request, %s", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("There was an error"))
-		} else {
-			w.WriteHeader(http.StatusOK)
-			w.Write(res)
+			w.Write([]byte("There was an error reading the body"))
+			return
 		}
 
+		// err = json.Unmarshal(jsonRes, &data)
+		err = json.Unmarshal(respBody, &data)
+		errorCode, id := chat.RemoveContact(db, data.ContactID)
+
+		if errorCode == 1 {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("There was an error deleting the contact"))
+		} else {
+
+			res, err := json.Marshal(id)
+
+			if err != nil {
+				log.Printf("Error marshalling response: %s", err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("There was an error"))
+			} else {
+				w.WriteHeader(http.StatusOK)
+				w.Write(res)
+			}
+
+		}
 	}
 
 }

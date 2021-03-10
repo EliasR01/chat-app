@@ -78,6 +78,7 @@ export type User = {
 };
 
 export type Payload = {
+  contactId?: string;
   username?: string;
   creator?: string;
   messages: MessageMap;

@@ -21,9 +21,13 @@ type Contact struct {
 
 //ContactReq struct, this is the contact information sent to the addContactHandler func
 type ContactReq struct {
-	Person   []person  `json:"people"`
-	Username string    `json:"username"`
-	Contact  []Contact `json:"contact"`
+	Person   []person `json:"people"`
+	Username string   `json:"username"`
+}
+
+//DelContactReq struct, receives the contact ID from the DELETE Request
+type DelContactReq struct {
+	ContactID string `json:"contact"`
 }
 
 type conversation struct {
@@ -279,33 +283,21 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 }
 
 //RemoveContact function, detaches contact from user
-func RemoveContact(db *sql.DB, data Contact) (int, []Contact) {
-	sqlRemoveContact := `DELETE FROM contact WHERE id = $1`
-	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, u.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
+func RemoveContact(db *sql.DB, id string) (int, string) {
+	sqlRemoveContact := `DELETE FROM contacts WHERE id = $1`
 
-	var contactData Contact
-	var resContacts []Contact
-
-	_, err := db.Exec(sqlRemoveContact, data.ID)
+	_, err := db.Exec(sqlRemoveContact, id)
 
 	if err != nil {
 		log.Printf("Error deleting contact: %s", err)
-		return 1, nil
+		return 1, ""
 	}
-
-	res, err := db.Query(sqlContacts, data.UserID)
 
 	if err != nil {
 		log.Printf("Error querying contacts: %s", err)
-		return 1, nil
+		return 1, ""
 	}
 
-	defer res.Close()
-	for res.Next() {
-		res.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID, &contactData.Username, &contactData.Address, &contactData.Phone)
-		resContacts = append(resContacts, contactData)
-	}
-
-	return 0, resContacts
+	return 0, id
 
 }

@@ -80,17 +80,19 @@ export const chatMiddleware = async (
       await axios
         .delete(`${process.env.REACT_APP_BACKEND_ENDPOINT}rem_contact`, {
           data: {
-            contact: payload.contacts,
+            contact: payload.contacts && payload.contacts[0].id,
           },
         })
         .then((response) => {
           if (response.status === 200) {
-            const data = {
-              contacts: response.data,
-              messages: {},
-              conversations: {},
-            };
-            dispatch({ payload: data, type: action });
+            dispatch({
+              payload: {
+                contactId: response.data,
+                messages: {},
+                conversations: {},
+              },
+              type: action,
+            });
             result = { data: "Contact removed successfully", code: 1 };
           }
         })

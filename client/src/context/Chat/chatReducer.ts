@@ -54,7 +54,12 @@ export const chatReducer = (state: State, action: Action): State => {
     }
     case "REMOVE_CONTACT": {
       const data = action.payload;
-      return { ...state, contacts: data.contacts };
+
+      const newContacts = state.contacts?.filter(
+        (contact) => contact.id !== data.contactId
+      );
+
+      return { ...state, contacts: newContacts };
     }
     default:
       return state;
