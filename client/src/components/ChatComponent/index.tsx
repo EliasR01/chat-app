@@ -38,6 +38,8 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   const { state: chatState, dispatch: chatDispatch } = useContext(ChatContext);
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  console.log(conversations);
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
     await chatDispatch("LOGIN", {
@@ -85,12 +87,39 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   //It changes the values depending on the selected option, to filter the conversations or de contacts according to the value to search
   useEffect(() => {
     if (option === "history" || option === "archived") {
-      const convs = conversations?.filter(
-        (conv) => conv.member.includes(searchValue) && conv.sts !== "DELETED"
-      );
+      let convs = [];
+
+      for (const index in chatState.conversations) {
+        if (
+          chatState.conversations[index].sts === "CREATED" &&
+          (chatState.conversations[index].creator.includes(searchValue) ||
+            chatState.conversations[index].member.includes(searchValue)) &&
+          chatState.conversations[index].sts !== "DELETED"
+        ) {
+          const messageIdx = chatState.conversations[index].lastMessage.String;
+          const conversation: Conversation = {
+            createdAt: chatState.conversations[index].createdAt,
+            creator: chatState.conversations[index].creator,
+            deletedAt: chatState.conversations[index].deletedAt,
+            id: index,
+            member: chatState.conversations[index].member,
+            sts: chatState.conversations[index].sts,
+            updatedAt: chatState.conversations[index].updatedAt,
+            lastMessage:
+              messageIdx.length > 1 &&
+              chatState.messages[messageIdx] &&
+              (chatState.messages[messageIdx].sts === "READED" ||
+                chatState.messages[messageIdx].sts === "SENT")
+                ? chatState.messages[messageIdx].body
+                : "",
+          };
+          convs.push(conversation);
+        }
+      }
+
       setConversations(convs);
     } else if (option === "contacts") {
-      const cont = contacts?.filter(
+      const cont = chatState.contacts?.filter(
         (contact) =>
           contact.name.includes(searchValue) ||
           contact.username.includes(searchValue)
@@ -98,7 +127,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
 
       setContacts(cont);
     } else if (option === "people") {
-      const peop = people?.filter(
+      const peop = chatState.people?.filter(
         (person) =>
           person.name.includes(searchValue) ||
           person.username?.includes(searchValue)
