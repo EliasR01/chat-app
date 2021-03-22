@@ -92,13 +92,17 @@ const ChatHistory = ({
                     setConv(conv.id);
                   }}
                 >
-                  <ListItem alignItems="flex-start">
-                    <ListItemAvatar>
-                      <Avatar alt="Some Photo" />
+                  <ListItem alignItems="flex-start" key={conv.id}>
+                    <ListItemAvatar key={conv.createdAt}>
+                      <Avatar alt="Some Photo" key={conv.id} />
                     </ListItemAvatar>
-                    <ListItemText primary={user} secondary={conv.lastMessage} />
-                    <ListItemSecondaryAction>
-                      <Lens />
+                    <ListItemText
+                      primary={user}
+                      secondary={conv.lastMessage}
+                      key={conv.id}
+                    />
+                    <ListItemSecondaryAction key={conv.updatedAt}>
+                      <Lens key={conv.id} />
                     </ListItemSecondaryAction>
                   </ListItem>
                   <Divider variant="inset" component="li" />
@@ -111,20 +115,25 @@ const ChatHistory = ({
       jsx =
         people && people.length > 0
           ? people.map((person) => {
+              const personId = person.id;
+              const currPerson = person;
+
               return (
-                <ConvWrapper key={person.id}>
+                <ConvWrapper key={personId}>
                   <Menu
                     id="simple-menu"
                     keepMounted
                     anchorEl={anchorEl}
                     open={menuOption === "people"}
                     onClose={handleClose}
+                    key={person.username}
                   >
                     <MenuItem
                       onClick={() => {
-                        addContact(person);
+                        addContact(currPerson);
                         anchorOptions(null, "");
                       }}
+                      key={personId}
                     >
                       Add Contact
                     </MenuItem>
@@ -132,19 +141,21 @@ const ChatHistory = ({
                   <ListItem
                     alignItems="flex-start"
                     onClick={(e) => anchorOptions(e.currentTarget, "people")}
+                    key={personId}
                   >
-                    <ListItemAvatar>
-                      <Avatar alt="Some Photo" />
+                    <ListItemAvatar key={personId}>
+                      <Avatar alt="Some Photo" key={personId} />
                     </ListItemAvatar>
                     <ListItemText
                       primary={person.name}
                       secondary={person.username}
+                      key={person.email}
                     />
-                    <ListItemSecondaryAction>
-                      <Lens />
+                    <ListItemSecondaryAction key={person.phone}>
+                      <Lens key={personId} />
                     </ListItemSecondaryAction>
                   </ListItem>
-                  <Divider variant="inset" component="li" />
+                  <Divider variant="inset" component="li" key={person.email} />
                 </ConvWrapper>
               );
             })
@@ -162,12 +173,14 @@ const ChatHistory = ({
                     anchorEl={anchorEl}
                     open={menuOption === "contact"}
                     onClose={handleClose}
+                    key={contact.username}
                   >
                     <MenuItem
                       onClick={() => {
                         createConv(contact.username);
                         anchorOptions(null, "");
                       }}
+                      key={contact.id}
                     >
                       Text a message
                     </MenuItem>
@@ -176,6 +189,7 @@ const ChatHistory = ({
                         removeContact(contact);
                         anchorOptions(null, "");
                       }}
+                      key={contact.username}
                     >
                       Remove contact
                     </MenuItem>
@@ -183,19 +197,21 @@ const ChatHistory = ({
                   <ListItem
                     alignItems="flex-start"
                     onClick={(e) => anchorOptions(e.currentTarget, "contact")}
+                    key={contact.id}
                   >
-                    <ListItemAvatar>
-                      <Avatar alt="Some Photo" />
+                    <ListItemAvatar key={contact.id}>
+                      <Avatar alt="Some Photo" key={contact.id} />
                     </ListItemAvatar>
                     <ListItemText
                       primary={contact.name}
                       secondary={contact.username}
+                      key={contact.username}
                     />
-                    <ListItemSecondaryAction>
-                      <Lens />
+                    <ListItemSecondaryAction key={contact.name}>
+                      <Lens key={contact.id} />
                     </ListItemSecondaryAction>
                   </ListItem>
-                  <Divider variant="inset" component="li" />
+                  <Divider variant="inset" component="li" key={contact.name} />
                 </ConvWrapper>
               );
             })

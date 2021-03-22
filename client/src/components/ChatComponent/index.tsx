@@ -39,7 +39,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  console.log(conversations);
   //Function that fetch all the messages that the user has, when log in or refresh page.
   const fetchMessages = async (): Promise<void> => {
     await chatDispatch("LOGIN", {
