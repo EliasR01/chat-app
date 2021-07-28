@@ -74,25 +74,32 @@ const ChatComponent = ({ history }: props): ReactElement => {
         conv.member.includes(searchValue)
       );
       setConversations(convs);
-    } else if (option === "people") {
-      const cont = contacts?.filter(
+    } else if (option === "contacts") {
+      const cont = chatState.contacts?.filter(
         (contact) =>
           contact.name.includes(searchValue) ||
           contact.username.includes(searchValue)
       );
 
       setContacts(cont);
-    } else if (option === "contacts") {
-      const peop = people?.filter(
+    } else if (option === "people") {
+      const peop = chatState.people?.filter(
         (person) =>
           person.name.includes(searchValue) ||
-          person.username?.includes(searchValue)
+          person.username?.includes(searchValue) ||
+          !searchValue ||
+          searchValue === ""
       );
 
       setPeople(peop);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchValue]);
+  }, [
+    searchValue,
+    chatState.contacts,
+    chatState.people,
+    option,
+    conversations,
+  ]);
 
   //This function executes when changing the current option to see the chats, contacts, people or archived chats.
   useEffect(() => {

@@ -61,7 +61,7 @@ const ChatHistory = ({
   const { state: chatState } = useContext(ChatContext);
   const { state: userState } = useContext(UserContext);
   let jsx;
-
+  console.info("Chat state: ", people);
   //This renders a list based on the option that is selected
   switch (option) {
     case "history" || "archived":

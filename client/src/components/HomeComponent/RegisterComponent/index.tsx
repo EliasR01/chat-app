@@ -63,6 +63,7 @@ const RegisterComponent = ({
         console.log(confirm);
         dispatch("REGISTER", userData).then((result) => {
           if (result) {
+            setRegisterData(initialData);
             setLoading(false);
             handleModal(false);
           }
