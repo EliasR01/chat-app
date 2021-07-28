@@ -141,7 +141,6 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		var body user.Data
 
 		json.Unmarshal(bodyBytes, &body)
-		log.Println(body)
 		response := user.UpdateUser(body, db, body.CurrUsername)
 
 		if response == 0 {
@@ -155,8 +154,7 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	} else if r.Method == http.MethodDelete {
-		data := r.PostForm
-		log.Println(data)
+		// data := r.PostForm
 	} else {
 		w.Write([]byte("Method not allowed!"))
 		w.WriteHeader(http.StatusMethodNotAllowed)

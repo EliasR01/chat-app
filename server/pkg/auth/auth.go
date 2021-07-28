@@ -36,7 +36,6 @@ var UserData User
 
 //ValidateUser function
 func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request login data: %v", data)
 	if data[0] == "LOGIN" {
 		sqlStatement := `SELECT * FROM users WHERE EMAIL = $1`
 
@@ -49,7 +48,11 @@ func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Requ
 			return
 		} else {
 			err := res.Scan(&UserData.Name, &UserData.Email, &UserData.Password, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username, &UserData.FileURL)
-			log.Printf("Error scaning: %v", err)
+
+			if err != nil {
+				log.Printf("Error scaning: %v", err)
+			}
+
 			err = bcrypt.CompareHashAndPassword([]byte(UserData.Password), []byte(data[2]))
 
 			if err != nil {
@@ -142,7 +145,7 @@ func validateToken(cookie *http.Cookie, db *sql.DB) bool {
 	tokenString := cookie.Value
 	claims := &claims{}
 	// claims.Email
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	token, _ := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
 		res, err := db.Query(sqlStatement, claims.Email)
 
@@ -156,16 +159,11 @@ func validateToken(cookie *http.Cookie, db *sql.DB) bool {
 
 		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	})
-	log.Printf("Token: %v", token)
-	log.Printf("Error: %v", err)
 	return token.Valid
 }
 
 //Logout function used to remove the cookie in the browser in order to logging out the user
 func Logout(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Setting cookie")
-
-	log.Printf("Cookies: %v", r.Cookies())
 
 	cookie := http.Cookie{
 		Name:     "auth",
