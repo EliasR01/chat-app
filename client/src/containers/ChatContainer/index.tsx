@@ -7,8 +7,7 @@ import { UserContext } from "../../context/User/UserContext";
 
 const ChatContainer = ({ history }: props): ReactElement => {
   const [loading, setLoading] = useState(true);
-  const { state, dispatch } = useContext(UserContext);
-  const cookie = document.cookie;
+  const { dispatch } = useContext(UserContext);
 
   //Function that fetch the user information when user reloads the page
   const fetchReload = async (): Promise<void> => {
@@ -27,15 +26,9 @@ const ChatContainer = ({ history }: props): ReactElement => {
   //If there is no cookie and no user data, returns to root page.
   //Otherwise, set loading to false and renders the ChatComponent
   useEffect(() => {
-    if (cookie && state.name === "" && state.email === "") {
-      fetchReload().then(() => {
-        setLoading(false);
-      });
-    } else if (!cookie && state.name === "" && state.email === "") {
-      history.push("/");
-    } else {
+    fetchReload().then(() => {
       setLoading(false);
-    }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

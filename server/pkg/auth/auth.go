@@ -23,6 +23,7 @@ type User struct {
 	Address   string `json:"address"`
 	Phone     string `json:"phone"`
 	Username  string `json:"username"`
+	FileURL   string `json:"file_url"`
 }
 
 type claims struct {
@@ -35,52 +36,47 @@ var UserData User
 
 //ValidateUser function
 func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Request) {
+	log.Printf("Request login data: %v", data)
 	if data[0] == "LOGIN" {
 		sqlStatement := `SELECT * FROM users WHERE EMAIL = $1`
-		var rows int
-		res, err := db.Query(sqlStatement, data[1])
-		if err != nil {
-			w.WriteHeader(http.StatusConflict)
-			w.Write([]byte("There was an error querying the user"))
+
+		res := db.QueryRow(sqlStatement, data[1])
+
+		if err := res.Err(); err != nil {
+			log.Printf("Error querying user: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("Invalid user credentials"))
+			return
 		} else {
-			defer res.Close()
-			for res.Next() {
-				rows++
-				res.Scan(&UserData.Name, &UserData.Email, &UserData.Password, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username)
-				err := bcrypt.CompareHashAndPassword([]byte(UserData.Password), []byte(data[2]))
+			err := res.Scan(&UserData.Name, &UserData.Email, &UserData.Password, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username, &UserData.FileURL)
+			log.Printf("Error scaning: %v", err)
+			err = bcrypt.CompareHashAndPassword([]byte(UserData.Password), []byte(data[2]))
 
-				if err != nil {
-					w.WriteHeader(http.StatusNonAuthoritativeInfo)
-					w.Write([]byte("Invalid user credentials"))
-					log.Printf("Invalid user credentials: %s", err)
-				} else {
-					cookie := generateToken(UserData.Email)
-
-					u := map[string]interface{}{}
-					u["ID"] = UserData.ID
-					u["name"] = UserData.Name
-					u["email"] = UserData.Email
-					u["address"] = UserData.Address
-					u["phone"] = UserData.Phone
-					u["username"] = UserData.Username
-
-					b, err := json.Marshal(u)
-
-					if err != nil {
-						log.Printf("Error marshal string: %s", err)
-					} else {
-						r.AddCookie(cookie)
-						http.SetCookie(w, cookie)
-						w.Write([]byte(b))
-						UserData = User{}
-					}
-				}
-
-			}
-
-			if rows < 1 {
+			if err != nil {
 				w.WriteHeader(http.StatusNonAuthoritativeInfo)
 				w.Write([]byte("Invalid user credentials"))
+				log.Printf("Invalid user credentials: %s", err)
+			} else {
+				cookie := generateToken(UserData.Email)
+
+				u := map[string]interface{}{}
+				u["ID"] = UserData.ID
+				u["name"] = UserData.Name
+				u["email"] = UserData.Email
+				u["address"] = UserData.Address
+				u["phone"] = UserData.Phone
+				u["username"] = UserData.Username
+
+				b, err := json.Marshal(u)
+
+				if err != nil {
+					log.Printf("Error marshal string: %s", err)
+				} else {
+					r.AddCookie(cookie)
+					http.SetCookie(w, cookie)
+					w.Write([]byte(b))
+					UserData = User{}
+				}
 			}
 		}
 	} else if data[0] == "RELOAD" {
@@ -105,8 +101,8 @@ func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Requ
 			}
 			UserData = User{}
 		} else {
-			w.Write([]byte("Invalid token!"))
 			w.WriteHeader(http.StatusBadGateway)
+			w.Write([]byte("Invalid token!"))
 			UserData = User{}
 		}
 	}
@@ -114,10 +110,12 @@ func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Requ
 
 func generateToken(email string) *http.Cookie {
 	var cookie http.Cookie
-	tokenClaims := jwt.MapClaims{}
-	tokenClaims["authorized"] = true
-	tokenClaims["email"] = email
-	tokenClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	tokenClaims := &claims{
+		Email: email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(365 * 24 * time.Hour).Unix(),
+		},
+	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
@@ -127,11 +125,13 @@ func generateToken(email string) *http.Cookie {
 	} else {
 		expiration := time.Now().Add(365 * 24 * time.Hour)
 		cookie = http.Cookie{
-			Name:  "auth",
-			Value: tokenString,
-			// Path:     "/",
-			Expires: expiration,
-			Secure:  false,
+			Name:     "auth",
+			Value:    tokenString,
+			Path:     "/",
+			Expires:  expiration,
+			Secure:   true,
+			HttpOnly: true,
+			SameSite: http.SameSiteDefaultMode,
 		}
 	}
 	return &cookie
@@ -142,7 +142,7 @@ func validateToken(cookie *http.Cookie, db *sql.DB) bool {
 	tokenString := cookie.Value
 	claims := &claims{}
 	// claims.Email
-	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
 		res, err := db.Query(sqlStatement, claims.Email)
 
@@ -154,22 +154,30 @@ func validateToken(cookie *http.Cookie, db *sql.DB) bool {
 			res.Scan(&UserData.Name, &UserData.Email, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username)
 		}
 
-		return token, nil
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	})
-	if err != nil {
-		return true
-	}
-	return false
+	log.Printf("Token: %v", token)
+	log.Printf("Error: %v", err)
+	return token.Valid
 }
 
 //Logout function used to remove the cookie in the browser in order to logging out the user
-func Logout(w http.ResponseWriter) {
+func Logout(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Setting cookie")
+
+	log.Printf("Cookies: %v", r.Cookies())
+
 	cookie := http.Cookie{
-		Name:   "auth",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
+		Name:     "auth",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Unix(0, 0),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteDefaultMode,
 	}
 	http.SetCookie(w, &cookie)
+	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("User deauthenticated!"))
 }

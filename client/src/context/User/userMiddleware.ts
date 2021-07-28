@@ -48,9 +48,12 @@ export const userMiddleware = async (
     case "RELOAD": {
       let result = false;
       await axios
-        .get(`http://localhost:4000/auth?type=${action}`, {
-          withCredentials: true,
-        })
+        .get(
+          `http://localhost:4000/auth?type=${action}&email=${payload.email}&password=${payload.password}`,
+          {
+            withCredentials: true,
+          }
+        )
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: "RELOAD" });
@@ -64,12 +67,14 @@ export const userMiddleware = async (
     }
     case "LOGOUT": {
       let result = false;
-      await axios.get("http://localhost:4000/logout").then((response) => {
-        if (response.status === 200) {
-          dispatch({ payload: response.data, type: "LOGOUT" });
-          result = true;
-        }
-      });
+      await axios
+        .get("http://localhost:4000/logout", { withCredentials: true })
+        .then((response) => {
+          if (response.status === 200) {
+            dispatch({ payload: response.data, type: "LOGOUT" });
+            result = true;
+          }
+        });
       return result;
     }
     case "UPDATE": {

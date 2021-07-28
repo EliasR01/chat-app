@@ -13,16 +13,14 @@ const HomeContainer = ({ history }: props): ReactElement => {
   const [error, setError] = useState<string | boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
-  const cookie = document.cookie;
 
   useEffect(() => {
-    if (cookie) {
-      dispatch("RELOAD", { name: "", email: "" }).then((response) => {
-        if (response) {
-          history.push("/chat");
-        }
-      });
-    }
+    dispatch("RELOAD", { name: "", email: "" }).then((response) => {
+      console.info("Response: ", response);
+      if (response) {
+        history.push("/chat");
+      }
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

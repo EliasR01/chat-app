@@ -21,7 +21,7 @@ const (
 	host     = "localhost"
 	port     = 5432
 	login    = "postgres"
-	password = "postgres"
+	password = "gh327688"
 	dbname   = "hellochat"
 )
 
@@ -72,8 +72,11 @@ func main() {
 
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:8000")
+	w.Header().Set("Access-Control-Allow-Methods", "GET")
+	w.Header().Set("Access-Control-Allow-Headers", "content-type")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	auth.Logout(w)
+	auth.Logout(w, r)
 }
 
 func chatHandler(w http.ResponseWriter, r *http.Request) {
@@ -96,9 +99,9 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "content-type")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	var data []string
-	for _, v := range r.URL.Query() {
-		data = append(data, v[0])
-	}
+	data = append(data, r.URL.Query().Get("type"))
+	data = append(data, r.URL.Query().Get("email"))
+	data = append(data, r.URL.Query().Get("password"))
 	auth.ValidateUser(data, db, w, r)
 
 }

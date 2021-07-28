@@ -199,7 +199,6 @@ const ChatComponent = ({ history }: props): ReactElement => {
       }
     });
   };
-  console.log(modalResponse);
   const returnJsx = loading ? (
     <LinearProgress />
   ) : (
