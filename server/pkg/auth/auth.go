@@ -82,6 +82,11 @@ func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Requ
 				}
 			}
 		}
+
+		if rows < 1 {
+			w.WriteHeader(http.StatusNonAuthoritativeInfo)
+			w.Write([]byte("Invalid user credentials"))
+		}
 	} else if data[0] == "RELOAD" {
 		cookie, err := r.Cookie("auth")
 		if err != nil {
@@ -141,17 +146,15 @@ func generateToken(email string) *http.Cookie {
 }
 
 func validateToken(cookie *http.Cookie, db *sql.DB) bool {
-	sqlStatement := `SELECT name, email, created_at, id, address, phone, username FROM users WHERE EMAIL = $1`
+	sqlStatement := `SELECT name, email, created_at, address, phone, username, file_url FROM users WHERE EMAIL = $1`
 	tokenString := cookie.Value
 	claims := &claims{}
 	// claims.Email
 	token, _ := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
-		res, err := db.Query(sqlStatement, claims.Email)
+	//Check this function...
 
-		if err != nil {
-			log.Printf("Error querying user: %s", err)
-		}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
 		for res.Next() {
 			res.Scan(&UserData.Name, &UserData.Email, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username)

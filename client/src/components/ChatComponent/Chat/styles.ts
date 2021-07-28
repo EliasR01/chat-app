@@ -11,7 +11,7 @@ export const useContainerStyles = makeStyles({
     padding: 0,
     // position: "fixed",
     boxSizing: "border-box",
-    overflow: "none",
+    overflow: "hidden",
     maxHeight: "100%",
   },
 });
@@ -39,12 +39,27 @@ export const useListStyles = makeStyles({
     width: "100%",
     height: "100%",
     display: "flex",
+    // gridTemplateRows: "auto",
+    justifyContent: "safe flex-end",
+    alignItems: "safe flex-end",
+    justifyItems: "end",
+    flexFlow: "column",
+    overflowX: "hidden",
+    overflowY: "auto",
+    flex: 1,
+    "::-webkit-scrollbar": {
+      display: "none",
+    },
+    // "&:first-child": {
+    //   marginTop: "auto",
+    // },
   },
 });
 
 export const useListItemStyles = makeStyles<Theme, itemProps>({
   root: {
     display: "flex",
+    // justifySelf: ({ primary }) => (primary ? "end" : "start"),
     alignSelf: ({ primary }) => (primary ? "flex-end" : "flex-start"),
     maxWidth: "50%",
     backgroundColor: ({ primary }) => (primary ? "#0084FF" : "#C0C0C0"),

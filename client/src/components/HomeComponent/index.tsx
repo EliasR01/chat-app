@@ -49,7 +49,11 @@ const HomeComponent = ({
   return (
     <Paper className={paperStyles.root}>
       <Container className={containerStyles.root}>
-        <RegisterComponent open={openModal} handleModal={setOpenModal} />
+        <RegisterComponent
+          open={openModal}
+          handleModal={setOpenModal}
+          login={login}
+        />
         <Card className={textCardStyles.root}>
           <Box className={textBoxStyles.root}>
             <Title>HelloChat</Title>
@@ -81,7 +85,10 @@ const HomeComponent = ({
                 {error ? <Error>{error}</Error> : null}
               </Wrapper>
               <Wrapper>
-                <Button className={signInButtonStyles.root} onClick={login}>
+                <Button
+                  className={signInButtonStyles.root}
+                  onClick={() => login("", "")}
+                >
                   Sign In
                 </Button>
                 <ForgotPassword>Forgot Password</ForgotPassword>

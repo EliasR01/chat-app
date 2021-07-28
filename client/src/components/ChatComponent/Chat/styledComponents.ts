@@ -28,13 +28,7 @@ export const InputWrapper = styled.div`
 
 export const ChatWrapper = styled.div`
   width: 100%;
-  display: flex;
-  justify-content: safe flex-end;
-  flex-flow: column;
-  overflow: auto;
-  ::-webkit-scrollbar {
-    display: none;
-  }
+  height: 100%;
 `;
 
 export const Form = styled.form`
@@ -42,4 +36,9 @@ export const Form = styled.form`
   height: 100%;
   display: flex;
   overflow: none;
+`;
+
+export const EmojiDialog = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `;

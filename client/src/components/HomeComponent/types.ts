@@ -9,7 +9,7 @@ type LoginData = {
 export type Props = {
   data: LoginData;
   setData: Dispatch<SetStateAction<LoginData>>;
-  login: () => void;
+  login: (email: string, password: string) => void;
   openModal: boolean;
   setOpenModal: Dispatch<SetStateAction<boolean>>;
   error: string | boolean;

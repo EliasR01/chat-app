@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useState, useEffect } from "react";
+import { ReactElement, useContext, useState, useEffect } from "react";
 import HomeComponent from "../../components/HomeComponent";
 import { UserContext } from "../../context/User/UserContext";
 import { loginData, props } from "./types";
@@ -13,7 +13,6 @@ const HomeContainer = ({ history }: props): ReactElement => {
   const [error, setError] = useState<string | boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
-
   useEffect(() => {
     dispatch("RELOAD", { name: "", email: "" }).then((response) => {
       console.info("Response: ", response);
@@ -24,14 +23,26 @@ const HomeContainer = ({ history }: props): ReactElement => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signIn = () => {
+  const signIn = (email: string, password: string) => {
     setError(false);
-    if (loginData.email === "" || loginData.password === "") {
+    if (
+      (loginData.email === "" || loginData.password === "") &&
+      (email === "" || password === "")
+    ) {
       setError("Must fill the fields!");
     } else {
       setLoading(true);
       try {
-        dispatch("LOGIN", loginData).then((response) => {
+        const data =
+          loginData.email !== ""
+            ? loginData
+            : {
+                email,
+                password,
+                name: "",
+              };
+
+        dispatch("LOGIN", data).then((response) => {
           setLoading(false);
           if (response === true) {
             history.push("/chat");

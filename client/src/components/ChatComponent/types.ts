@@ -1,6 +1,6 @@
 import { History } from "history";
 
-export type props = {
+export type Props = {
   history: History;
 };
 
@@ -12,10 +12,11 @@ export type Conversation = {
   updatedAt: string;
   deletedAt: string;
   sts: string;
+  lastMessage: string;
 };
 
 export type User = {
-  id?: number;
+  id?: string;
   name: string;
   email: string;
   password?: string;
@@ -25,6 +26,7 @@ export type User = {
 };
 
 export type Message = {
+  id: string;
   type: number;
   body: string;
   sender?: string;

@@ -1,4 +1,5 @@
-import { Dispatch, SetStateAction, MouseEvent } from "react";
+import { Dispatch, SetStateAction } from "react";
+import { Contact } from "../types";
 
 export type props = {
   setOption: Dispatch<SetStateAction<string>>;
@@ -8,14 +9,21 @@ export type props = {
   conversations?: conversation[];
   contacts?: contact[];
   people?: User[];
-  anchorEl: HTMLElement | null;
-  setAnchorEl: (e: MouseEvent<HTMLButtonElement> | null) => void;
+  anchorEl: Element | null | undefined;
   handleClose: () => void;
   logout: () => void;
   openProfile: Dispatch<SetStateAction<boolean>>;
   search: (
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) => void;
+  anchorOptions: (
+    e: HTMLLIElement | HTMLButtonElement | null,
+    option: string
+  ) => void;
+  menuOption: string;
+  addContact: (person: User) => void;
+  removeContact: (contact: Contact) => void;
+  createConv: (contactUsername: string) => void;
 };
 
 export type conversation = {
@@ -26,6 +34,7 @@ export type conversation = {
   updatedAt: string;
   deletedAt: string;
   sts: string;
+  lastMessage: string;
 };
 
 export type contact = {
@@ -39,7 +48,7 @@ export type contact = {
 };
 
 export type User = {
-  id?: number;
+  id?: string;
   name: string;
   email: string;
   address?: string;

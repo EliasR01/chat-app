@@ -1,4 +1,4 @@
-import React, {
+import {
   createContext,
   ReactElement,
   useEffect,
@@ -6,25 +6,27 @@ import React, {
   useContext,
 } from "react";
 import { connect } from "../../websocket";
-import { State, Children } from "./types";
+import { State, Children, Payload, Response } from "./types";
 import { chatMiddleware } from "./chatMiddleware";
 import { chatReducer } from "./chatReducer";
 import { UserContext } from "../User/UserContext";
 
 const initialState: State = {
-  messages: [],
+  messages: {},
   attachments: [],
-  conversations: [],
+  conversations: {},
   contacts: [],
   people: [],
 };
 
 export const ChatContext = createContext<{
   state: State;
-  dispatch: (action: string, payload: State) => Promise<boolean>;
+  dispatch: (action: string, payload: Payload) => Promise<Response>;
 }>({
   state: initialState,
-  dispatch: async () => false,
+  dispatch: async () => {
+    return { data: "Nothing executed", code: 0 };
+  },
 });
 
 export const ChatProvider = ({ children }: Children): ReactElement => {
@@ -33,25 +35,35 @@ export const ChatProvider = ({ children }: Children): ReactElement => {
 
   //This is a hook that will handle all the dispatch operations needed for the ChatComponent functionality
   //including sending messages, receiving, querying and mutating messages, all kind of operations with the API.
-  const useMiddleware = (action: string, data: State): Promise<boolean> => {
+  const useMiddleware = (action: string, data: Payload): Promise<Response> => {
     return chatMiddleware(action, data, dispatch);
   };
 
   //This function executed once this component is loaded,
   //connects the websocket to the server and listens all the messages that are sent by the server
   useEffect(() => {
-    const messageHandler = (msg: MessageEvent): void => {
+    const useMessageHandler = (msg: MessageEvent): void => {
       const data = JSON.parse(msg.data);
+      let key = "";
+      for (const index in data) {
+        key = index;
+      }
       if (typeof data !== "string") {
-        if (data.type === 1) {
+        if (data[key] && data[key].type === 1) {
           const payloadState: State = {
-            messages: [data],
+            messages: data,
+            conversations: state.conversations,
           };
+          // useMiddleware("RECEIVE", payloadState);
           dispatch({ type: "RECEIVE", payload: payloadState });
+          console.log(state);
         }
       }
     };
-    connect({ messageHandler: messageHandler, username: userState.username });
+    connect({
+      messageHandler: useMessageHandler,
+      username: userState.username,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

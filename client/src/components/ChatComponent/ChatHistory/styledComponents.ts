@@ -20,3 +20,8 @@ export const ConvWrapper = styled.div`
     cursor: pointer;
   }
 `;
+
+export const Text = styled.span`
+  width: 100%;
+  text-align: center;
+`;

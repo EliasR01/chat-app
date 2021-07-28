@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode } from "react";
+import { ReactElement, ReactNode } from "react";
 import {
   Container,
   Box,
@@ -13,11 +13,11 @@ import {
 } from "@material-ui/core";
 import {
   Send,
-  EmojiEmotions,
   Attachment,
   AddIcCall,
   VideoCall,
   FiberManualRecord,
+  EmojiEmotions,
 } from "@material-ui/icons";
 import {
   useContainerStyles,
@@ -36,9 +36,11 @@ import {
   InputWrapper,
   Form,
   ChatWrapper,
+  EmojiDialog,
 } from "./styledComponents";
-import { props } from "./types";
-import { Message } from "../../../websocket/types";
+import { props, Message } from "./types";
+import { Picker } from "emoji-mart";
+import "./emoji-mart.css";
 
 const Chat = ({
   name,
@@ -48,6 +50,10 @@ const Chat = ({
   message,
   chatRef,
   username,
+  inputRef,
+  addEmoji,
+  picker,
+  showPicker,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const headerBoxStyles = useBoxStyles({ type: "h" });
@@ -84,13 +90,12 @@ const Chat = ({
         </HeaderWrapper>
       </Box>
       <Box className={bodyBoxStyles.root}>
-        <List className={listStyles.root}>
-          <ChatWrapper ref={chatRef}>
+        <ChatWrapper ref={chatRef}>
+          <List className={listStyles.root}>
             {messages && messages.length > 0
               ? messages.map(
                   (message: Message): ReactNode => {
                     const isPrimary = message.sender !== username;
-
                     if (message.type === 1) {
                       const messageJsx = isPrimary ? (
                         <ListItem
@@ -121,13 +126,25 @@ const Chat = ({
                       );
 
                       return messageJsx;
+                    } else {
+                      return null;
                     }
                   }
                 )
               : null}
-          </ChatWrapper>
-        </List>
+          </List>
+        </ChatWrapper>
       </Box>
+      {picker ? (
+        <EmojiDialog>
+          <Picker
+            onSelect={(e) => addEmoji(e)}
+            title="Pick your emoji…"
+            emoji="point_up"
+            native={true}
+          />
+        </EmojiDialog>
+      ) : null}
       <Box className={chatBoxStyles.root}>
         <Form
           onSubmit={(e) => {
@@ -153,10 +170,14 @@ const Chat = ({
             />
           </InputWrapper>
           <ChatActions>
-            <Button>
-              <EmojiEmotions />
+            <Button disabled={!isSelectedChat}>
+              <EmojiEmotions onClick={() => showPicker(!picker)} />
             </Button>
-            <Button>
+            <input type="file" ref={inputRef} style={{ display: "none" }} />
+            <Button
+              onClick={() => inputRef.current?.click()}
+              disabled={!isSelectedChat}
+            >
               <Attachment />
             </Button>
             <Button

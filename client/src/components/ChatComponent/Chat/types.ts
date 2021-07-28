@@ -1,5 +1,5 @@
+import { EmojiData } from "emoji-mart";
 import { Dispatch, SetStateAction } from "react";
-import { Message } from "../../../websocket/types";
 
 export type boxProps = {
   type: string;
@@ -17,4 +17,21 @@ export type props = {
   messages: Message[];
   message: string;
   chatRef: React.RefObject<HTMLDivElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
+  addEmoji: (e: EmojiData) => void;
+  picker: boolean;
+  showPicker: Dispatch<SetStateAction<boolean>>;
+};
+
+export type Message = {
+  id: string;
+  type: number;
+  body: string;
+  sender?: string;
+  receiver?: string;
+  conversationId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  userId?: number;
+  sts: string;
 };

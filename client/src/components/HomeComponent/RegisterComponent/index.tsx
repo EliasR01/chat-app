@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useState } from "react";
+import { ReactElement, useContext, useState } from "react";
 import {
   Button,
   Dialog,
@@ -20,6 +20,7 @@ import isMobilePhone from "validator/lib/isMobilePhone";
 const RegisterComponent = ({
   open,
   handleModal,
+  login,
 }: ModalComponentProps): ReactElement => {
   const cardStyles = useCardStyles();
   const dialogStyles = useDialogStyles();
@@ -60,12 +61,14 @@ const RegisterComponent = ({
       } else {
         setLoading(true);
         const { confirm, ...userData } = registerData;
-        console.log(confirm);
         dispatch("REGISTER", userData).then((result) => {
           if (result) {
             setRegisterData(initialData);
             setLoading(false);
             handleModal(false);
+            login(registerData.email, registerData.password);
+          } else {
+            setError("Something went wrong...");
           }
         });
       }

@@ -1,4 +1,4 @@
-import React, { createContext, useReducer, ReactElement } from "react";
+import { createContext, useReducer, ReactElement } from "react";
 import { userReducer } from "./userReducer";
 import { userMiddleware } from "./userMiddleware";
 import { User, Children } from "./types";

@@ -1,4 +1,5 @@
 import { makeStyles, Theme, createStyles } from "@material-ui/core";
+import { PaperProps } from "./types";
 
 export const useBoxStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -39,18 +40,43 @@ export const useModalStyles = makeStyles({
     justifyContent: "center",
     alignItems: "center",
     border: "none",
+    "&:focus": {
+      outline: "none",
+    },
   },
 });
 
-export const usePaperStyles = makeStyles({
+export const usePaperStyles = makeStyles<Theme, PaperProps>({
   root: {
+    height: "100%",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    flexFlow: ({ form }) => (form ? "column" : "row"),
     padding: "25px",
+    textAlign: "left",
   },
 });
 
 export const useTextFieldStyles = makeStyles({
   root: {
     width: "100%",
-    marginTop: "2%",
+    padding: "0 5px",
+  },
+});
+
+export const useButtonStyles = makeStyles({
+  root: {
+    width: "20%",
+    height: "20%",
+    backgroundColor: "#4083ff",
+    color: "white",
+    fontWeight: "bold",
+    padding: "2px",
+    "&:hover": {
+      transform: "scale(1.025)",
+      cursor: "pointer",
+      backgroundColor: "#71a3ff",
+    },
   },
 });

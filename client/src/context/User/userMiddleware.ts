@@ -12,12 +12,12 @@ export const userMiddleware = async (
       let result = false;
       await axios
         .get(
-          `http://localhost:4000/auth?type=${action}&email=${payload.email}&password=${payload.password}`,
+          `${process.env.REACT_APP_BACKEND_ENDPOINT}auth?type=${action}&email=${payload.email}&password=${payload.password}`,
           { withCredentials: true }
         )
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "LOGIN" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           } else {
             result = response.data;
@@ -31,10 +31,10 @@ export const userMiddleware = async (
     case "REGISTER": {
       let result = false;
       await axios
-        .post("http://localhost:4000/register", payload)
+        .post(`${process.env.REACT_APP_BACKEND_ENDPOINT}register`, payload)
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "REGISTER" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           } else {
             result = response.data;
@@ -56,7 +56,7 @@ export const userMiddleware = async (
         )
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "RELOAD" });
+            dispatch({ payload: response.data, type: action });
             result = true;
           }
         })
@@ -80,10 +80,10 @@ export const userMiddleware = async (
     case "UPDATE": {
       let result = "";
       await axios
-        .put("http://localhost:4000/update", payload)
+        .put(`${process.env.REACT_APP_BACKEND_ENDPOINT}update`, payload)
         .then((response) => {
           if (response.status === 200) {
-            dispatch({ payload: response.data, type: "UPDATE" });
+            dispatch({ payload: response.data, type: action });
             result = response.data;
           }
         })
