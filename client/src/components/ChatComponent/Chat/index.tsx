@@ -1,4 +1,4 @@
-import { ReactElement, ReactNode } from "react";
+import { ReactElement, ReactNode, useState } from "react";
 import {
   Container,
   Box,
@@ -52,8 +52,6 @@ const Chat = ({
   username,
   inputRef,
   addEmoji,
-  picker,
-  showPicker,
 }: props): ReactElement => {
   const containerStyles = useContainerStyles();
   const headerBoxStyles = useBoxStyles({ type: "h" });
@@ -67,8 +65,9 @@ const Chat = ({
   const primaryListItemTextStyles = useListItemTextStyles({ primary: true });
   const secondaryListItemTextStyles = useListItemTextStyles({ primary: false });
   const listItemAvatarStyles = useListItemAvatarStyles();
-
   const isSelectedChat = name ? true : false;
+  const [showPicker, setShowPicker] = useState<boolean>(false);
+
   return (
     <Container className={containerStyles.root}>
       <Box className={headerBoxStyles.root}>
@@ -93,49 +92,47 @@ const Chat = ({
         <ChatWrapper ref={chatRef}>
           <List className={listStyles.root}>
             {messages && messages.length > 0
-              ? messages.map(
-                  (message: Message): ReactNode => {
-                    const isPrimary = message.sender !== username;
-                    if (message.type === 1) {
-                      const messageJsx = isPrimary ? (
-                        <ListItem
-                          className={primaryListItemStyles.root}
-                          key={message.id}
-                        >
-                          <ListItemText
-                            secondary={message.body}
-                            className={primaryListItemTextStyles.root}
-                          />
-                          <ListItemAvatar className={listItemAvatarStyles.root}>
-                            <Avatar />
-                          </ListItemAvatar>
-                        </ListItem>
-                      ) : (
-                        <ListItem
-                          className={secondaryListItemStyles.root}
-                          key={message.id}
-                        >
-                          <ListItemAvatar className={listItemAvatarStyles.root}>
-                            <Avatar />
-                          </ListItemAvatar>
-                          <ListItemText
-                            secondary={message.body}
-                            className={secondaryListItemTextStyles.root}
-                          />
-                        </ListItem>
-                      );
+              ? messages.map((message: Message): ReactNode => {
+                  const isPrimary = message.sender !== username;
+                  if (message.type === 1) {
+                    const messageJsx = isPrimary ? (
+                      <ListItem
+                        className={primaryListItemStyles.root}
+                        key={message.id}
+                      >
+                        <ListItemText
+                          secondary={message.body}
+                          className={primaryListItemTextStyles.root}
+                        />
+                        <ListItemAvatar className={listItemAvatarStyles.root}>
+                          <Avatar />
+                        </ListItemAvatar>
+                      </ListItem>
+                    ) : (
+                      <ListItem
+                        className={secondaryListItemStyles.root}
+                        key={message.id}
+                      >
+                        <ListItemAvatar className={listItemAvatarStyles.root}>
+                          <Avatar />
+                        </ListItemAvatar>
+                        <ListItemText
+                          secondary={message.body}
+                          className={secondaryListItemTextStyles.root}
+                        />
+                      </ListItem>
+                    );
 
-                      return messageJsx;
-                    } else {
-                      return null;
-                    }
+                    return messageJsx;
+                  } else {
+                    return null;
                   }
-                )
+                })
               : null}
           </List>
         </ChatWrapper>
       </Box>
-      {picker ? (
+      {showPicker ? (
         <EmojiDialog>
           <Picker
             onSelect={(e) => addEmoji(e)}
@@ -170,8 +167,11 @@ const Chat = ({
             />
           </InputWrapper>
           <ChatActions>
-            <Button disabled={!isSelectedChat}>
-              <EmojiEmotions onClick={() => showPicker(!picker)} />
+            <Button
+              disabled={!isSelectedChat}
+              onClick={() => setShowPicker(!showPicker)}
+            >
+              <EmojiEmotions />
             </Button>
             <input type="file" ref={inputRef} style={{ display: "none" }} />
             <Button

@@ -62,7 +62,6 @@ export const chatReducer = (state: State, action: Action): State => {
       });
 
       let convID = "";
-
       for (const index in state.conversations) {
         if (
           state.conversations[index].member === username ||
@@ -72,9 +71,10 @@ export const chatReducer = (state: State, action: Action): State => {
         }
       }
 
-      const newConvs = state.conversations;
-      newConvs[convID].sts = "DELETED";
-      return { ...state, contacts: newContacts, conversations: newConvs };
+      if (convID.length > 0) {
+        state.conversations[convID].sts = "DELETED";
+      }
+      return { ...state, contacts: newContacts };
     }
     default:
       return state;

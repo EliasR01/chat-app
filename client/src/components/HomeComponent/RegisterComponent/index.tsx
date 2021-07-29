@@ -61,7 +61,14 @@ const RegisterComponent = ({
       } else {
         setLoading(true);
         const { confirm, ...userData } = registerData;
-        dispatch("REGISTER", userData).then((result) => {
+        const formData = new FormData();
+        formData.append("address", userData.address);
+        formData.append("emal", userData.email);
+        formData.append("name", userData.name);
+        formData.append("password", userData.password);
+        formData.append("phone", userData.phone);
+        formData.append("username", userData.username);
+        dispatch("REGISTER", { data: formData }).then((result) => {
           if (result) {
             setLoading(false);
             handleModal(false);

@@ -19,8 +19,6 @@ export type props = {
   chatRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
   addEmoji: (e: EmojiData) => void;
-  picker: boolean;
-  showPicker: Dispatch<SetStateAction<boolean>>;
 };
 
 export type Message = {

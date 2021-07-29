@@ -20,6 +20,7 @@ export const useBoxStyles = makeStyles<Theme, boxProps>({
   root: {
     width: "100%",
     minHeight: "50px",
+    position: ({ type }) => (type === "b" ? "relative" : "static"),
     height: ({ type }) =>
       type === "h" ? "50px" : type === "c" ? "50px" : "100%",
     display: "flex",

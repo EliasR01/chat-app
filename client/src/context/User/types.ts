@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 export type User = {
-  ID?: number;
+  id?: string;
   name: string;
   email: string;
   password?: string;
@@ -17,4 +17,10 @@ export type Action = {
 
 export type Children = {
   children: ReactNode;
+};
+
+export type UserPayload = {
+  data: FormData;
+  email?: string;
+  password?: string;
 };

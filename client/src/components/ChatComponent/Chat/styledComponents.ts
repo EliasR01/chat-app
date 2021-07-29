@@ -41,4 +41,8 @@ export const Form = styled.form`
 export const EmojiDialog = styled.div`
   display: flex;
   justify-content: flex-end;
+  position: absolute;
+  z-index: 1;
+  right: 150px;
+  bottom: 50px;
 `;

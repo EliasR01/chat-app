@@ -150,10 +150,11 @@ func validateToken(cookie *http.Cookie, db *sql.DB) bool {
 //Logout function used to remove the cookie in the browser in order to logging out the user
 func Logout(w http.ResponseWriter) {
 	cookie := &http.Cookie{
-		Name:   "auth",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
+		Name:    "auth",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Unix(0, 0),
+		MaxAge:  -1,
 	}
 
 	http.SetCookie(w, cookie)

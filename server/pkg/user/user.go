@@ -27,6 +27,7 @@ type Data struct {
 	Username     string `json:"username"`
 	CurrUsername string `json:"currUsername"`
 	FileURL      string `json:"fileurl"`
+	File         []byte `json:"file"`
 }
 
 //App firebase type
@@ -88,7 +89,7 @@ func UpdateUser(data Data, db *sql.DB, username string) int {
 	row.Scan(&hashedPassword, &fileURL)
 	hashErr := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(data.Password))
 	if fileURL != string(data.FileURL) {
-		err := UploadFile(data.CurrUsername+time.Now().Format("YYYY-MM-DDTHH:MM:SS")+".pdf", []byte(data.FileURL))
+		err := UploadFile(data.CurrUsername+time.Now().Format("YYYY-MM-DDTHH:MM:SS")+".pdf", data.File)
 
 		if err != nil {
 			log.Printf("Error uploading file: %s", err)

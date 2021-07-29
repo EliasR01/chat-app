@@ -144,8 +144,8 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("Error: %s", err)
 		}
 		var body user.Data
-
 		json.Unmarshal(bodyBytes, &body)
+		log.Println(body)
 		response := user.UpdateUser(body, db, body.CurrUsername)
 
 		if response == 0 {

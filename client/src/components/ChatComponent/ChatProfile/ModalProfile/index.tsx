@@ -43,10 +43,10 @@ const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [fileURL, setFileURL] = useState<string | ArrayBuffer | null>("");
+  const [fileURL, setFileURL] = useState<string>("");
+  const [file, setFile] = useState<File | null>(null);
   const [didFileChanged, setDidFileChanged] = useState<boolean>(false);
   const inputFileRef = useRef<HTMLInputElement>(null);
-
   const submitInformation = (): void => {
     setError(null);
     if (
@@ -62,16 +62,27 @@ const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
       if (password !== confirmPassword) {
         setError("Confirm password does not match");
       } else {
-        const data = {
-          ...userData,
-          currUsername: state.username,
-          password: password,
-          fileURL: fileURL,
-        };
+        // const data = {
+        //   ...userData,
+        //   currUsername: state.username,
+        //   password: password,
+        //   file,
+        //   fileURL,
+        // };
 
-        dispatch("UPDATE", data)
+        const formData = new FormData();
+        userData.address && formData.append("address", userData.address);
+        userData.username && formData.append("username", userData.username);
+        userData.phone && formData.append("phone", userData.phone);
+        state.username && formData.append("currUsername", state.username);
+        formData.append("password", password);
+        formData.append("fileURL", fileURL);
+        file && formData.append("file", file);
+
+        dispatch("UPDATE", { data: formData, email: state.email, password })
           .then((response) => {
             setResponse(response);
+            setUserData(state);
             setOpen(false);
           })
           .catch((err) => {
@@ -82,19 +93,13 @@ const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
     }
   };
 
-  const setFile = (e: ChangeEvent<HTMLInputElement>) => {
-    const reader = new FileReader();
-
-    const file = e.target && e.target.files && e.target.files[0];
-    file?.arrayBuffer().then((arrayBuffer) => {
-      const blob = new Blob([new Uint8Array(arrayBuffer)], { type: file.type });
-
-      reader.readAsText(blob);
-      reader.onload = () => {
-        setFileURL(reader.result);
-        setDidFileChanged(true);
-      };
-    });
+  const uploadFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = URL.createObjectURL(
+      e.target && e.target.files && e.target.files[0]
+    );
+    setFileURL(file);
+    setDidFileChanged(true);
+    setFile(e.target && e.target.files && e.target.files[0]);
   };
   return (
     <Modal
@@ -114,7 +119,7 @@ const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
               <List>
                 <ListItem>
                   <ListItemAvatar>
-                    <Avatar src={fileURL?.toString()} />
+                    <Avatar src={fileURL.toString()} />
                   </ListItemAvatar>
                   <ListItemText
                     primary="Change your profile photo"
@@ -127,7 +132,7 @@ const ModalProfile = ({ open, setOpen, setResponse }: Props): ReactElement => {
                 style={{ display: "none" }}
                 accept="image/x-png,image/jpeg,image/jpg"
                 ref={inputFileRef}
-                onChange={(e) => setFile(e)}
+                onChange={(e) => uploadFile(e)}
               />
               <Button
                 onClick={() => {

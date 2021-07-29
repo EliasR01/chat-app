@@ -1,4 +1,4 @@
-import { ReactElement, useContext } from "react";
+import { ReactElement, useContext, useState } from "react";
 import {
   Box,
   Container,
@@ -39,8 +39,9 @@ import {
   ConvWrapper,
   Text,
 } from "./styledComponents";
-import { props } from "./types";
+import { chatModalProps, props } from "./types";
 import { UserContext } from "../../../context/User/UserContext";
+import ChatModal from "./ChatModal";
 
 const ChatHistory = ({
   setOption,
@@ -67,6 +68,13 @@ const ChatHistory = ({
   const buttonStyles = useButtonStyles();
   const iconStyles = useIconStyles();
   const { state: userState } = useContext(UserContext);
+  const [modalProps, setModalProps] = useState<chatModalProps>({
+    type: "",
+    open: false,
+    handleClose: () => null,
+    action: () => null,
+    action2: () => null,
+  });
   let jsx;
   //This renders a list based on the option that is selected
   switch (option) {
@@ -114,33 +122,24 @@ const ChatHistory = ({
     case "people":
       jsx =
         people && people.length > 0
-          ? people.map((person) => {
+          ? people.map((person, index) => {
               const personId = person.id;
-              const currPerson = person;
+              // const currPerson = person;
 
               return (
                 <ConvWrapper key={personId}>
-                  <Menu
-                    id="simple-menu"
-                    keepMounted
-                    anchorEl={anchorEl}
-                    open={menuOption === "people"}
-                    onClose={handleClose}
-                    key={person.username}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        addContact(currPerson);
-                        anchorOptions(null, "");
-                      }}
-                      key={personId}
-                    >
-                      Add Contact
-                    </MenuItem>
-                  </Menu>
                   <ListItem
                     alignItems="flex-start"
-                    onClick={(e) => anchorOptions(e.currentTarget, "people")}
+                    onClick={(e) => {
+                      setModalProps({
+                        type: "people",
+                        element: e.currentTarget,
+                        open: true,
+                        handleClose: () => setModalProps({ ...modalProps }),
+                        action: () => addContact(person),
+                        action2: () => null,
+                      });
+                    }}
                     key={personId}
                   >
                     <ListItemAvatar key={personId}>
@@ -167,36 +166,19 @@ const ChatHistory = ({
           ? contacts.map((contact) => {
               return (
                 <ConvWrapper key={contact.id}>
-                  <Menu
-                    id="simple-menu"
-                    keepMounted
-                    anchorEl={anchorEl}
-                    open={menuOption === "contact"}
-                    onClose={handleClose}
-                    key={contact.username}
-                  >
-                    <MenuItem
-                      onClick={() => {
-                        createConv(contact.username);
-                        anchorOptions(null, "");
-                      }}
-                      key={contact.id}
-                    >
-                      Text a message
-                    </MenuItem>
-                    <MenuItem
-                      onClick={() => {
-                        removeContact(contact);
-                        anchorOptions(null, "");
-                      }}
-                      key={contact.username}
-                    >
-                      Remove contact
-                    </MenuItem>
-                  </Menu>
                   <ListItem
                     alignItems="flex-start"
-                    onClick={(e) => anchorOptions(e.currentTarget, "contact")}
+                    onClick={(e) => {
+                      console.log("Clicked!");
+                      setModalProps({
+                        type: "contacts",
+                        element: e.currentTarget,
+                        open: true,
+                        handleClose: () => setModalProps({ ...modalProps }),
+                        action: () => createConv(contact.username),
+                        action2: () => removeContact(contact),
+                      });
+                    }}
                     key={contact.id}
                   >
                     <ListItemAvatar key={contact.id}>
@@ -221,6 +203,7 @@ const ChatHistory = ({
 
   return (
     <Container className={containerStyles.root}>
+      <ChatModal {...modalProps} />
       <Box className={boxStyles.root}>
         <Typography component="h5" variant="h5">
           HELLOCHAT

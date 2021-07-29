@@ -12,7 +12,7 @@ const ChatContainer = ({ history }: props): ReactElement => {
 
   //Function that fetch the user information when user reloads the page
   const fetchReload = async (): Promise<void> => {
-    await dispatch("RELOAD", { name: "", email: "" })
+    await dispatch("RELOAD", { data: new FormData() })
       .then((response) => {
         if (!response) {
           history.push("/");
