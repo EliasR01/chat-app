@@ -119,7 +119,7 @@ export const chatMiddleware = async (
           if (res.status === 200) {
             dispatch({ payload: res.data, type: action });
             let returningIndex = "";
-            for (const index in res.data.conversation) {
+            for (const index in res.data.conversations) {
               returningIndex = index;
             }
 

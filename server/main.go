@@ -55,7 +55,6 @@ func main() {
 
 	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", os.Getenv("ORIGIN"))
-
 		websocket.Init(pool, w, r)
 	})
 
@@ -187,10 +186,13 @@ func addContactHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 		err = json.NewDecoder(r.Body).Decode(&data)
+
+		log.Printf("Contact data: %v", data)
+
 		if err != nil {
+			log.Printf("Error decoding resposne body: %s", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Error decoding the response body"))
-			log.Printf("%s", err)
 		} else {
 			errorCode, contact := chat.AddContact(db, data.Person, data.Username)
 
@@ -264,7 +266,6 @@ func convHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data chat.ConvReq
 	_ = json.NewDecoder(r.Body).Decode(&data)
-	log.Println(data)
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 	} else if r.Method == http.MethodPost {

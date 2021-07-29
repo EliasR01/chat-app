@@ -33,7 +33,6 @@ func CreateConv(creator string, member string, db *sql.DB) (int, ResData) {
 	sqlStatement := `INSERT INTO conversation(id, created_at, updated_at, deleted_at, sts, creator, member) VALUES(uuid_generate_v4(), $1, $2, $3, $4, $5, $6) RETURNING ID`
 	var convID string
 	var convMap = make(map[string]ConversationData)
-	log.Printf("Creator is: %s, and the member: %s", creator, member)
 	err := db.QueryRow(sqlStatement, time.Now(), time.Now(), nil, "CREATED", creator, member).Scan(&convID)
 
 	createdConv := ConversationData{

@@ -30,8 +30,9 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [toggleProfile, setToggleProfile] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>();
-  const [anchorEl, setAnchorEl] =
-    useState<HTMLLIElement | HTMLButtonElement | null>(null);
+  const [anchorEl, setAnchorEl] = useState<
+    HTMLLIElement | HTMLButtonElement | null
+  >(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [openProfile, setOpenProfile] = useState<boolean>(false);
   const [contacts, setContacts] = useState<Contact[] | undefined>([]);
@@ -78,6 +79,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     setPeople(allPeople);
     setContacts(chatState.contacts);
   }, [chatState.people, chatState.contacts, userState.name]);
+
   //Every time that a new conversation is selected, this   function is executed.
   useEffect(() => {
     const currentUser = currChat
@@ -133,12 +135,10 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     } else if (option === "people") {
       const peop = chatState.people?.filter(
         (person) =>
-          person.name.includes(searchValue) ||
-          person.username?.includes(searchValue) ||
-          !searchValue ||
+          (person.name.includes(searchValue) ||
+            person.username?.includes(searchValue)) &&
           searchValue === ""
       );
-
       setPeople(peop);
     }
   }, [
@@ -148,6 +148,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     option,
     chatState.conversations,
     chatState.messages,
+    userState.name,
   ]);
 
   //This function executes when changing the current option to see the chats, contacts, people or archived chats.
@@ -272,7 +273,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     const uniqueMessage = {
       first: socketMessage,
     };
-
     chatDispatch("SEND", { messages: uniqueMessage, conversations: {} }).then(
       (res) => {
         if (res.code === 1) {

@@ -12,6 +12,7 @@ export const useBoxStyles = makeStyles((theme: Theme) =>
       padding: "25px",
       height: "85%",
       maxHeight: "570px",
+      overflowY: "auto",
       [theme.breakpoints.down("xs")]: {
         width: "100px",
       },

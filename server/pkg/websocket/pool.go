@@ -50,12 +50,11 @@ func (pool *Pool) Start(db *sql.DB) {
 			pool.Clients[client.User] = client.Client
 			log.Printf("Size of Connection Pool: %d", len(pool.Clients))
 			client.Client.Conn.WriteJSON(Message{Type: 0, Body: "New user connected"})
-			break
 		case client := <-pool.Unregister:
 			delete(pool.Clients, client.User)
 			log.Printf("Size of Connection Pool: %d", len(pool.Clients))
-			break
 		case message := <-pool.Broadcast:
+
 			var dataKey string
 			var data map[string]messageData
 			err := json.Unmarshal(message.Data, &data)

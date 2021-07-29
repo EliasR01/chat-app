@@ -53,10 +53,11 @@ func (c *ClientData) Read() {
 	for {
 		messageType, p, err := c.Client.Conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error: %s", err)
+			log.Printf("Error reading message: %s", err)
 			return
 		}
 
+		log.Printf("Getting message: %v %s", messageType, string(p))
 		message := Message{Type: messageType, Body: string(p), Data: p}
 		c.Client.Pool.Broadcast <- message
 	}

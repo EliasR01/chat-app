@@ -28,6 +28,7 @@ export const connect = ({ messageHandler, username }: cb): void => {
 
 export const sendMsg = (msg?: MessageMap): void => {
   const message = JSON.stringify(msg);
+  console.info("[WebSocket] sending message: ", message);
   socket.send(message);
 };
 

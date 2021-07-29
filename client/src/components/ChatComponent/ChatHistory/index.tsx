@@ -15,6 +15,7 @@ import {
   Menu,
   MenuItem,
   Typography,
+  Tooltip,
 } from "@material-ui/core";
 import {
   Search,
@@ -209,12 +210,14 @@ const ChatHistory = ({
           HELLOCHAT
         </Typography>
         <OptionsWrapper>
-          <Button
-            className={buttonStyles.root}
-            onClick={() => setOption("contacts")}
-          >
-            <AddCircle />
-          </Button>
+          <Tooltip title="Add contact" arrow>
+            <Button
+              className={buttonStyles.root}
+              onClick={() => setOption("contacts")}
+            >
+              <AddCircle />
+            </Button>
+          </Tooltip>
           <Button
             aria-controls="simple-menu"
             onClick={(e) => anchorOptions(e.currentTarget, "profile")}
@@ -263,38 +266,46 @@ const ChatHistory = ({
       </Box>
       <Box className={boxStyles.root}>
         <IconsWrapper>
-          <Button
-            className={
-              option === "history" ? iconStyles.selected : iconStyles.hover
-            }
-            onClick={() => setOption("history")}
-          >
-            <History />
-          </Button>
-          <Button
-            className={
-              option === "people" ? iconStyles.selected : iconStyles.hover
-            }
-            onClick={() => setOption("people")}
-          >
-            <People />
-          </Button>
-          <Button
-            className={
-              option === "contacts" ? iconStyles.selected : iconStyles.hover
-            }
-            onClick={() => setOption("contacts")}
-          >
-            <Contacts />
-          </Button>
-          <Button
-            className={
-              option === "archived" ? iconStyles.selected : iconStyles.hover
-            }
-            onClick={() => setOption("archived")}
-          >
-            <Archive />
-          </Button>
+          <Tooltip title="History" arrow>
+            <Button
+              className={
+                option === "history" ? iconStyles.selected : iconStyles.hover
+              }
+              onClick={() => setOption("history")}
+            >
+              <History />
+            </Button>
+          </Tooltip>
+          <Tooltip title="People" arrow>
+            <Button
+              className={
+                option === "people" ? iconStyles.selected : iconStyles.hover
+              }
+              onClick={() => setOption("people")}
+            >
+              <People />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Contacts" arrow>
+            <Button
+              className={
+                option === "contacts" ? iconStyles.selected : iconStyles.hover
+              }
+              onClick={() => setOption("contacts")}
+            >
+              <Contacts />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Archived" arrow>
+            <Button
+              className={
+                option === "archived" ? iconStyles.selected : iconStyles.hover
+              }
+              onClick={() => setOption("archived")}
+            >
+              <Archive />
+            </Button>
+          </Tooltip>
         </IconsWrapper>
       </Box>
       <Box>

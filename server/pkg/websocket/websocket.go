@@ -17,13 +17,12 @@ var upgrader = websocket.Upgrader{
 func Init(pool *Pool, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print(err)
+		log.Printf("Error initializing socket: %s", err)
 	}
 
 	var data []string
-	for _, v := range r.URL.Query() {
-		data = append(data, v[0])
-	}
+
+	data = append(data, r.URL.Query().Get("user"))
 
 	poolClient := &PoolClient{
 		Conn: conn,

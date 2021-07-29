@@ -68,7 +68,7 @@ type person struct {
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	CreatedAt string `json:"created_at"`
-	ID        string `json:"id"`
+	ID        int    `json:"id"`
 	Address   string `json:"address"`
 	Phone     string `json:"phone"`
 	Username  string `json:"username"`
@@ -95,7 +95,7 @@ func GetUserInfo(db *sql.DB, w http.ResponseWriter, r *http.Request, data string
 	//Querying user conversations
 	go fetchConversations(db, data)
 
-	go fetchPeople(db)
+	go fetchPeople(db, data)
 	wg.Wait()
 
 	userData := userData{
@@ -157,10 +157,10 @@ func fetchContacts(db *sql.DB, data string) {
 	}
 }
 
-func fetchPeople(db *sql.DB) {
-	sqlPersons := `SELECT name, email, created_at, id, address, phone, username FROM users`
+func fetchPeople(db *sql.DB, data string) {
+	sqlPersons := `SELECT name, email, created_at, id, address, phone, username FROM users WHERE username != $1`
 
-	res, err := db.Query(sqlPersons)
+	res, err := db.Query(sqlPersons, data)
 	if err != nil {
 		log.Printf("Error querying users: %s", err)
 	}
@@ -245,36 +245,54 @@ func fetchConversations(db *sql.DB, data string) {
 func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 	sqlAddContact := `INSERT INTO CONTACTS(id, name, email, user_id, username) VALUES (uuid_generate_v4() ,$1, $2, $3, $4)`
 	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, c.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
-	sqlUser := `SELECT id FROM users WHERE username = $1`
+	sqlUser := `SELECT id, name, email, created_at, address, phone, username FROM users WHERE username = $1`
 	var resContacts []Contact
 	var contactData Contact
-	var err error
-	var userID string
-	err = db.QueryRow(sqlUser, username).Scan(&userID)
 
-	if err != nil {
-		log.Printf("Error querying user: %s", err)
+	var requesterUser person
+	var receiverUser person
+
+	log.Printf("Adding contact: %v %s", data, username)
+	reqErr := db.QueryRow(sqlUser, username).Scan(&requesterUser.ID, &requesterUser.Name, &requesterUser.Email, &requesterUser.CreatedAt, &requesterUser.Address, &requesterUser.Phone, &requesterUser.Username)
+
+	if reqErr != nil {
+		log.Printf("Error querying requester user: %s", reqErr)
 		return 1, nil
 	}
 
-	_, err = db.Exec(sqlAddContact, data[0].Name, data[0].Email, userID, data[0].Username)
+	recErr := db.QueryRow(sqlUser, data[0].Username).Scan(&receiverUser.ID, &receiverUser.Name, &receiverUser.Email, &receiverUser.CreatedAt, &receiverUser.Address, &receiverUser.Phone, &receiverUser.Username)
 
-	if err != nil {
-		log.Printf("Error inserting the contact: %s", err)
+	if recErr != nil {
+		log.Printf("Error querying receiver user: %s", recErr)
 		return 1, nil
 	}
 
-	res, err := db.Query(sqlContacts, userID)
+	_, insErr := db.Exec(sqlAddContact, receiverUser.Name, receiverUser.Email, requesterUser.ID, receiverUser.Username)
+
+	if insErr != nil {
+		log.Printf("Error inserting the requester contact: %s", insErr)
+		return 1, nil
+	}
+
+	_, insErr = db.Exec(sqlAddContact, requesterUser.Name, requesterUser.Email, receiverUser.ID, requesterUser.Username)
+
+	if insErr != nil {
+		log.Printf("Error inserting the receiver contact: %s", insErr)
+		return 1, nil
+	}
+
+	res, contErr := db.Query(sqlContacts, requesterUser.ID)
+
+	if contErr != nil {
+		log.Printf("Error retrieving the contact information: %s", contErr)
+		return 1, nil
+	}
 
 	defer res.Close()
+
 	for res.Next() {
 		res.Scan(&contactData.ID, &contactData.Name, &contactData.Email, &contactData.UserID, &contactData.Username, &contactData.Address, &contactData.Phone)
 		resContacts = append(resContacts, contactData)
-	}
-
-	if err != nil {
-		log.Printf("Error retrieving the contact information: %s", err)
-		return 1, nil
 	}
 
 	return 0, resContacts
