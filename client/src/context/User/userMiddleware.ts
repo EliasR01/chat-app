@@ -1,10 +1,10 @@
 import { Dispatch } from "react";
 import axios from "axios";
-import { User, Action } from "./types";
+import { Action, UserPayload } from "./types";
 
 export const userMiddleware = async (
   action: string,
-  payload: User,
+  payload: UserPayload,
   dispatch: Dispatch<Action>
 ): Promise<boolean | string> => {
   switch (action) {
@@ -31,7 +31,7 @@ export const userMiddleware = async (
     case "REGISTER": {
       let result = false;
       await axios
-        .post(`${process.env.REACT_APP_BACKEND_ENDPOINT}register`, payload)
+        .post(`${process.env.REACT_APP_BACKEND_ENDPOINT}register`, payload.data)
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: action });
@@ -82,7 +82,7 @@ export const userMiddleware = async (
     case "UPDATE": {
       let result = "";
       await axios
-        .put(`${process.env.REACT_APP_BACKEND_ENDPOINT}update`, payload)
+        .put(`${process.env.REACT_APP_BACKEND_ENDPOINT}update`, payload.data)
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: action });

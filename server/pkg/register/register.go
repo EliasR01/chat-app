@@ -23,7 +23,7 @@ type UserData struct {
 
 //User function to create a new user
 func User(data UserData, db *sql.DB, w http.ResponseWriter) {
-	sqlStatement := `INSERT INTO users(name, email, password, created_at, address, phone, username) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	sqlStatement := `INSERT INTO users(ID, name, email, password, created_at, address, phone, username) VALUES (uuid_generate_v4() ,$1, $2, $3, $4, $5, $6, $7)`
 	sqlQuery := `SELECT * FROM users WHERE name = $1 OR email = $2`
 
 	res, err := db.Query(sqlQuery, data.Name, data.Email)

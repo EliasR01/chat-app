@@ -1,4 +1,11 @@
-import { ReactElement, useContext, useState, useRef, useEffect } from "react";
+import {
+  ReactElement,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { Paper, LinearProgress, Dialog, DialogTitle } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import Chat from "./Chat";
@@ -23,15 +30,13 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [toggleProfile, setToggleProfile] = useState<boolean>(false);
   const [conversations, setConversations] = useState<Conversation[]>();
-  const [anchorEl, setAnchorEl] = useState<
-    HTMLLIElement | HTMLButtonElement | null
-  >(null);
+  const [anchorEl, setAnchorEl] =
+    useState<HTMLLIElement | HTMLButtonElement | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [openProfile, setOpenProfile] = useState<boolean>(false);
   const [contacts, setContacts] = useState<Contact[] | undefined>([]);
   const [people, setPeople] = useState<User[] | undefined>([]);
   const [modalResponse, setModalResponse] = useState<string | boolean>(false);
-  const [showPicker, setShowPicker] = useState<boolean>(false);
   const [menuOption, setMenuOption] = useState<string>("");
   const [error, setError] = useState<string | boolean>(false);
   const { state: userState, dispatch: userDispatch } = useContext(UserContext);
@@ -310,7 +315,11 @@ const ChatComponent = ({ history }: Props): ReactElement => {
       : null;
   //Function that triggers the logout reducer
   const logout = (): void => {
-    userDispatch("LOGOUT", { name: "", email: "" }).then((response) => {
+    userDispatch("LOGOUT", {
+      data: new FormData(),
+      email: "",
+      password: "",
+    }).then((response) => {
       if (response) {
         history.push("/");
       }
@@ -331,40 +340,58 @@ const ChatComponent = ({ history }: Props): ReactElement => {
   };
 
   //AddContact function, adds a new contact to the user
-  const addContact = (person: User) => {
-    chatDispatch("ADD_CONTACT", {
-      people: [person],
-      username: userState.username,
-      messages: {},
-      conversations: {},
-    }).then((response) => {
-      if (response.code === 1) {
-        //Do the response
-        console.log(response.data);
-      } else {
-        //Do the error
-        console.log(response.data);
-      }
-    });
-  };
+  const addContact = useCallback(
+    (person: User) => {
+      chatDispatch("ADD_CONTACT", {
+        people: [person],
+        username: userState.username,
+        messages: {},
+        conversations: {},
+      }).then((response) => {
+        if (response.code === 1) {
+          //Do the response
+          console.log(response.data);
+        } else {
+          //Do the error
+          console.log(response.data);
+        }
+      });
+    },
+    [chatDispatch, userState.username]
+  );
 
   //RemoveContact function, detaches user's contact
-  const removeContact = (contact: Contact) => {
-    chatDispatch("REMOVE_CONTACT", {
-      contacts: [contact],
-      messages: {},
-      conversations: {},
-    }).then((res) => {
-      if (res.code === 1) {
-        //Not error
-      } else {
-        //Error
-      }
-    });
-  };
+  const removeContact = useCallback(
+    (contact: Contact) => {
+      chatDispatch("REMOVE_CONTACT", {
+        contacts: [contact],
+        messages: {},
+        conversations: {},
+      }).then((res) => {
+        if (res.code === 1) {
+          //Not error
+        } else {
+          //Error
+        }
+      });
+    },
+    [chatDispatch]
+  );
 
   //CreateConv function, creates a new conversation
   const createConv = (contactUsername: string) => {
+    const conversation = conversations?.find(
+      (conv) =>
+        conv.member === contactUsername || conv.creator === contactUsername
+    );
+
+    if (conversation) {
+      setCurrChat(contactUsername);
+      setCurrConv(conversation.id);
+      setOption("history");
+      return;
+    }
+
     chatDispatch("CREATE_CONV", {
       messages: {},
       conversations: {},
@@ -380,7 +407,7 @@ const ChatComponent = ({ history }: Props): ReactElement => {
       }
     });
   };
-
+  // console.log(currUser, currChat);
   const returnJsx = loading ? (
     <LinearProgress />
   ) : (
@@ -414,8 +441,6 @@ const ChatComponent = ({ history }: Props): ReactElement => {
         chatRef={chatRef}
         inputRef={inputRef}
         addEmoji={addEmoji}
-        picker={showPicker}
-        showPicker={setShowPicker}
       />
       <ChatProfile
         user={user}

@@ -14,7 +14,7 @@ type Contact struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
-	UserID   int    `json:"userid"`
+	UserID   string `json:"userid"`
 	Username string `json:"username"`
 	Address  string `json:"address"`
 	Phone    string `json:"phone"`
@@ -68,7 +68,7 @@ type person struct {
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	CreatedAt string `json:"created_at"`
-	ID        int    `json:"id"`
+	ID        string `json:"id"`
 	Address   string `json:"address"`
 	Phone     string `json:"phone"`
 	Username  string `json:"username"`
@@ -131,7 +131,7 @@ func clearVariables() {
 
 func fetchContacts(db *sql.DB, data string) {
 	sqlUser := `SELECT id FROM users WHERE username = $1`
-	var userID int
+	var userID string
 	userRes, userErr := db.Query(sqlUser, data)
 
 	if userErr != nil {
@@ -141,7 +141,6 @@ func fetchContacts(db *sql.DB, data string) {
 	for userRes.Next() {
 		userRes.Scan(&userID)
 	}
-
 	sqlContacts := `SELECT c.id, c.name, c.email, c.user_id, c.username, u.address, u.phone FROM contacts c, users u WHERE c.user_id = $1 AND u.name = c.name`
 	var rows = 0
 	contRes, contErr := db.Query(sqlContacts, userID)
@@ -250,7 +249,7 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 	var resContacts []Contact
 	var contactData Contact
 	var err error
-	var userID int
+	var userID string
 	err = db.QueryRow(sqlUser, username).Scan(&userID)
 
 	if err != nil {
@@ -284,7 +283,7 @@ func AddContact(db *sql.DB, data []person, username string) (int, []Contact) {
 
 //RemoveContact function, detaches contact from user
 func RemoveContact(db *sql.DB, id string) (int, string) {
-	sqlRemoveContact := `DELETE FROM contacts WHERE id = $1 returning USERNAME`
+	sqlRemoveContact := `DELETE FROM contacts WHERE id = $1 RETURNING username`
 	sqlUpdateConversation := `UPDATE conversation set sts = 'DELETED', deleted_at = $2 where creator = $1 or member = $1 RETURNING ID`
 	sqlUpdateMessages := `UPDATE messages SET sts = 'DELETED' WHERE conversation_id = $1`
 	// sqlRemoveMessages := `DELETE FROM messages WHERE `
@@ -295,22 +294,13 @@ func RemoveContact(db *sql.DB, id string) (int, string) {
 	err := db.QueryRow(sqlRemoveContact, id).Scan(&contactUsername)
 
 	if err != nil {
-		log.Printf("Error deleting contact: %s", err)
+		log.Printf("Error deleting or scanning contact: %s", err)
 		return 1, ""
 	}
 
-	err = db.QueryRow(sqlUpdateConversation, contactUsername, time.Now()).Scan(&convID)
+	db.QueryRow(sqlUpdateConversation, contactUsername, time.Now()).Scan(&convID)
 
-	if err != nil {
-		log.Printf("Error updating conversation: %s", err)
-		return 1, ""
-	}
-
-	_, err = db.Exec(sqlUpdateMessages, convID)
-
-	if err != nil {
-		log.Printf("Error updating messages: %s", err)
-	}
+	db.Exec(sqlUpdateMessages, convID)
 
 	return 0, id
 

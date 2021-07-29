@@ -14,8 +14,7 @@ const HomeContainer = ({ history }: props): ReactElement => {
   const [loading, setLoading] = useState<boolean>(false);
   const { dispatch } = useContext(UserContext);
   useEffect(() => {
-    dispatch("RELOAD", { name: "", email: "" }).then((response) => {
-      console.info("Response: ", response);
+    dispatch("RELOAD", { data: new FormData() }).then((response) => {
       if (response) {
         history.push("/chat");
       }
@@ -42,7 +41,11 @@ const HomeContainer = ({ history }: props): ReactElement => {
                 name: "",
               };
 
-        dispatch("LOGIN", data).then((response) => {
+        dispatch("LOGIN", {
+          data: new FormData(),
+          email: data.email,
+          password: data.password,
+        }).then((response) => {
           setLoading(false);
           if (response === true) {
             history.push("/chat");

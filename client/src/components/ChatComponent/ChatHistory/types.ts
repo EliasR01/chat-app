@@ -55,3 +55,25 @@ export type User = {
   phone?: string;
   username?: string;
 };
+
+export type chatModalProps = {
+  type: string;
+  element?: Element;
+  open: boolean;
+  handleClose: () => void;
+  action: () => void;
+  action2: () => void;
+  // closeAction: (arg1: null, arg2: string) => void;
+};
+
+export type modalOptions = {
+  title: string;
+  action: () => void;
+};
+
+export type modalMap = {
+  [type: string]: modalOptions[];
+};
+
+//createConv(contact.username);
+//removeContact(contact);
