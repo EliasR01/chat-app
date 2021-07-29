@@ -49,7 +49,7 @@ export const userMiddleware = async (
       let result = false;
       await axios
         .get(
-          `http://localhost:4000/auth?type=${action}&email=${payload.email}&password=${payload.password}`,
+          `${process.env.REACT_APP_BACKEND_ENDPOINT}auth?type=${action}&email=${payload.email}&password=${payload.password}`,
           {
             withCredentials: true,
           }
@@ -68,7 +68,9 @@ export const userMiddleware = async (
     case "LOGOUT": {
       let result = false;
       await axios
-        .get("http://localhost:4000/logout", { withCredentials: true })
+        .get(`${process.env.REACT_APP_BACKEND_ENDPOINT}logout`, {
+          withCredentials: true,
+        })
         .then((response) => {
           if (response.status === 200) {
             dispatch({ payload: response.data, type: "LOGOUT" });

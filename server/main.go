@@ -29,6 +29,9 @@ var db *sql.DB
 var err error
 
 func main() {
+
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	mux := http.NewServeMux()
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+"password=%s dbname=%s sslmode=disable", host, port, login, password, dbname)
 

@@ -48,7 +48,7 @@ export type contact = {
 };
 
 export type User = {
-  id?: string;
+  id?: number;
   name: string;
   email: string;
   address?: string;

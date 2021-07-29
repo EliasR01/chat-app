@@ -15,15 +15,15 @@ import (
 
 //User Type
 type User struct {
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	CreatedAt string `json:"created_at"`
-	ID        int    `json:"id"`
-	Address   string `json:"address"`
-	Phone     string `json:"phone"`
-	Username  string `json:"username"`
-	FileURL   string `json:"file_url"`
+	Name      string         `json:"name"`
+	Email     string         `json:"email"`
+	Password  string         `json:"password"`
+	CreatedAt string         `json:"created_at"`
+	ID        int            `json:"id"`
+	Address   string         `json:"address"`
+	Phone     string         `json:"phone"`
+	Username  string         `json:"username"`
+	FileURL   sql.NullString `json:"file_url"`
 }
 
 type claims struct {
@@ -81,11 +81,6 @@ func ValidateUser(data []string, db *sql.DB, w http.ResponseWriter, r *http.Requ
 					UserData = User{}
 				}
 			}
-		}
-
-		if rows < 1 {
-			w.WriteHeader(http.StatusNonAuthoritativeInfo)
-			w.Write([]byte("Invalid user credentials"))
 		}
 	} else if data[0] == "RELOAD" {
 		cookie, err := r.Cookie("auth")
@@ -146,18 +141,19 @@ func generateToken(email string) *http.Cookie {
 }
 
 func validateToken(cookie *http.Cookie, db *sql.DB) bool {
-	sqlStatement := `SELECT name, email, created_at, address, phone, username, file_url FROM users WHERE EMAIL = $1`
+	sqlStatement := `SELECT name, email, created_at, id, address, phone, username, file_url FROM users WHERE EMAIL = $1`
 	tokenString := cookie.Value
 	claims := &claims{}
 	// claims.Email
 	token, _ := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
-	//Check this function...
+		//Check this function...
+		res := db.QueryRow(sqlStatement, claims.Email)
 
-	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		err := res.Scan(&UserData.Name, &UserData.Email, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username, &UserData.FileURL)
 
-		for res.Next() {
-			res.Scan(&UserData.Name, &UserData.Email, &UserData.CreatedAt, &UserData.ID, &UserData.Address, &UserData.Phone, &UserData.Username)
+		if err != nil {
+			log.Printf("Error scaning rows when validating token: %v", err)
 		}
 
 		return []byte(os.Getenv("ACCESS_SECRET")), nil

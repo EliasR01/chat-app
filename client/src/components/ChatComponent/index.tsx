@@ -141,7 +141,8 @@ const ChatComponent = ({ history }: Props): ReactElement => {
     chatState.contacts,
     chatState.people,
     option,
-    conversations,
+    chatState.conversations,
+    chatState.messages,
   ]);
 
   //This function executes when changing the current option to see the chats, contacts, people or archived chats.
